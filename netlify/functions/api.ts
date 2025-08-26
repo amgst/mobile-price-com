@@ -1,5 +1,6 @@
 import { Handler } from '@netlify/functions';
-import { Pool } from "pg";
+import pkg from "pg";
+const { Pool } = pkg;
 import { drizzle } from "drizzle-orm/node-postgres";
 import * as schema from "../../shared/schema.js";
 import { eq, like, or, and, sql } from "drizzle-orm";
@@ -56,10 +57,16 @@ export const handler: Handler = async (event, context) => {
 
     if (path === '/mobiles' && method === 'GET') {
       const brandParam = event.queryStringParameters?.brand;
+      const featuredParam = event.queryStringParameters?.featured;
       
       if (brandParam) {
         const brandMobiles = await db.select().from(mobiles).where(eq(mobiles.brand, brandParam));
         return response(200, brandMobiles);
+      }
+      
+      if (featuredParam === 'true') {
+        const featuredMobiles = await db.select().from(mobiles).limit(6);
+        return response(200, featuredMobiles);
       }
       
       const allMobiles = await db.select().from(mobiles);

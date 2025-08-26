@@ -1,0 +1,724 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mobile Prices in Pakistan 2025 - Compare Smartphones & Reviews</title>
+    <meta name="description" content="Compare mobile phone prices in Pakistan. Find latest smartphone specifications, reviews, and best deals from all brands including Samsung, Apple, Xiaomi and more.">
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+    tailwind.config = {
+        theme: {
+            extend: {
+                fontFamily: {
+                    'inter': ['Inter', 'sans-serif']
+                },
+                colors: {
+                    primary: {
+                        50: '#eff6ff',
+                        500: '#2563eb',
+                        600: '#1d4ed8',
+                        700: '#1e40af'
+                    }
+                }
+            }
+        }
+    };
+    </script>
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+</head>
+<body class="font-inter bg-gray-50">
+    <!-- @COMPONENT: Header -->
+    <header class="bg-white shadow-sm border-b sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16">
+                <!-- Logo -->
+                <div class="flex items-center">
+                    <div class="flex-shrink-0 flex items-center">
+                        <i data-lucide="smartphone" class="h-8 w-8 text-primary-600 mr-2"></i>
+                        <span class="text-xl font-bold text-gray-900" data-bind="site.name">MobilePrices.pk</span>
+                    </div>
+                </div>
+
+                <!-- Search Bar -->
+                <div class="flex-1 max-w-2xl mx-8">
+                    <div class="relative">
+                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <i data-lucide="search" class="h-5 w-5 text-gray-400"></i>
+                        </div>
+                        <input type="text" data-mock="true" placeholder="Search mobiles, brands..." 
+                               class="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-primary-500 focus:border-primary-500">
+                    </div>
+                </div>
+
+                <!-- Navigation -->
+                <nav class="hidden md:flex items-center space-x-8">
+                    <a href="#" data-bind="nav.brands" class="text-gray-700 hover:text-primary-600 font-medium">Brands</a>
+                    <a href="#" data-bind="nav.compare" class="text-gray-700 hover:text-primary-600 font-medium">Compare</a>
+                    <a href="#" data-bind="nav.latest" class="text-gray-700 hover:text-primary-600 font-medium">Latest</a>
+                </nav>
+
+                <!-- Mobile menu button -->
+                <div class="md:hidden">
+                    <button class="text-gray-700 hover:text-primary-600">
+                        <i data-lucide="menu" class="h-6 w-6"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+    <!-- @END_COMPONENT: Header -->
+
+    <!-- @COMPONENT: Breadcrumbs -->
+    <div class="bg-white border-b">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
+            <nav class="flex" aria-label="Breadcrumb">
+                <ol class="flex items-center space-x-2">
+                    <li>
+                        <a href="#" class="text-gray-500 hover:text-gray-700">
+                            <i data-lucide="home" class="h-4 w-4"></i>
+                        </a>
+                    </li>
+                    <li class="flex items-center">
+                        <i data-lucide="chevron-right" class="h-4 w-4 text-gray-400 mx-2"></i>
+                        <span class="text-gray-900 font-medium" data-bind="breadcrumb.current">Home</span>
+                    </li>
+                </ol>
+            </nav>
+        </div>
+    </div>
+    <!-- @END_COMPONENT: Breadcrumbs -->
+
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <!-- Hero Section -->
+        <!-- @COMPONENT: HeroSection -->
+        <section class="mb-12">
+            <div class="text-center mb-8">
+                <h1 class="text-4xl font-bold text-gray-900 mb-4" data-bind="hero.title">
+                    Find Best Mobile Prices in Pakistan 2025
+                </h1>
+                <p class="text-xl text-gray-600 max-w-3xl mx-auto" data-bind="hero.subtitle">
+                    Compare smartphone specifications, prices, and reviews from all major brands. Get the best deals on latest mobile phones.
+                </p>
+            </div>
+
+            <!-- Stats Bar -->
+            <div class="bg-white rounded-lg shadow-sm border p-6 mb-8">
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <div class="text-center">
+                        <div class="text-2xl font-bold text-primary-600" data-bind="stats.totalPhones">1,250+</div>
+                        <div class="text-sm text-gray-600">Mobile Phones</div>
+                    </div>
+                    <div class="text-center">
+                        <div class="text-2xl font-bold text-primary-600" data-bind="stats.brands">45+</div>
+                        <div class="text-sm text-gray-600">Brands</div>
+                    </div>
+                    <div class="text-center">
+                        <div class="text-2xl font-bold text-primary-600" data-bind="stats.dailyUpdates">Daily</div>
+                        <div class="text-sm text-gray-600">Price Updates</div>
+                    </div>
+                    <div class="text-center">
+                        <div class="text-2xl font-bold text-primary-600" data-bind="stats.reviews">10K+</div>
+                        <div class="text-sm text-gray-600">User Reviews</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+        <!-- @END_COMPONENT: HeroSection -->
+
+        <!-- Popular Brands Grid -->
+        <!-- @COMPONENT: BrandsGrid -->
+        <section class="mb-12">
+            <div class="flex items-center justify-between mb-6">
+                <h2 class="text-2xl font-bold text-gray-900">Popular Brands</h2>
+                <a href="#" class="text-primary-600 hover:text-primary-700 font-medium flex items-center">
+                    View All Brands
+                    <i data-lucide="arrow-right" class="h-4 w-4 ml-1"></i>
+                </a>
+            </div>
+
+            <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
+                <!-- @MAP: popularBrands.map(brand => ( -->
+                <div class="bg-white rounded-lg border hover:shadow-md transition-shadow p-6 text-center cursor-pointer" data-event="click:navigateToBrand">
+                    <!-- Brand logo placeholder representing Samsung -->
+                    <div class="h-12 w-12 mx-auto mb-3 bg-gray-100 rounded-lg flex items-center justify-center">
+                        <span class="text-lg font-bold text-gray-600" data-mock="true">S</span>
+                    </div>
+                    <h3 class="font-semibold text-gray-900 mb-1" data-bind="brand.name">Samsung</h3>
+                    <p class="text-sm text-gray-500" data-bind="brand.phoneCount">142 phones</p>
+                </div>
+
+                <div class="bg-white rounded-lg border hover:shadow-md transition-shadow p-6 text-center cursor-pointer">
+                    <!-- Brand logo placeholder representing Apple -->
+                    <div class="h-12 w-12 mx-auto mb-3 bg-gray-100 rounded-lg flex items-center justify-center">
+                        <span class="text-lg font-bold text-gray-600" data-mock="true">A</span>
+                    </div>
+                    <h3 class="font-semibold text-gray-900 mb-1" data-mock="true">Apple</h3>
+                    <p class="text-sm text-gray-500" data-mock="true">28 phones</p>
+                </div>
+
+                <div class="bg-white rounded-lg border hover:shadow-md transition-shadow p-6 text-center cursor-pointer">
+                    <!-- Brand logo placeholder representing Xiaomi -->
+                    <div class="h-12 w-12 mx-auto mb-3 bg-gray-100 rounded-lg flex items-center justify-center">
+                        <span class="text-lg font-bold text-gray-600" data-mock="true">X</span>
+                    </div>
+                    <h3 class="font-semibold text-gray-900 mb-1" data-mock="true">Xiaomi</h3>
+                    <p class="text-sm text-gray-500" data-mock="true">89 phones</p>
+                </div>
+
+                <div class="bg-white rounded-lg border hover:shadow-md transition-shadow p-6 text-center cursor-pointer">
+                    <!-- Brand logo placeholder representing Oppo -->
+                    <div class="h-12 w-12 mx-auto mb-3 bg-gray-100 rounded-lg flex items-center justify-center">
+                        <span class="text-lg font-bold text-gray-600" data-mock="true">O</span>
+                    </div>
+                    <h3 class="font-semibold text-gray-900 mb-1" data-mock="true">Oppo</h3>
+                    <p class="text-sm text-gray-500" data-mock="true">67 phones</p>
+                </div>
+
+                <div class="bg-white rounded-lg border hover:shadow-md transition-shadow p-6 text-center cursor-pointer">
+                    <!-- Brand logo placeholder representing Vivo -->
+                    <div class="h-12 w-12 mx-auto mb-3 bg-gray-100 rounded-lg flex items-center justify-center">
+                        <span class="text-lg font-bold text-gray-600" data-mock="true">V</span>
+                    </div>
+                    <h3 class="font-semibold text-gray-900 mb-1" data-mock="true">Vivo</h3>
+                    <p class="text-sm text-gray-500" data-mock="true">54 phones</p>
+                </div>
+
+                <div class="bg-white rounded-lg border hover:shadow-md transition-shadow p-6 text-center cursor-pointer">
+                    <!-- Brand logo placeholder representing Realme -->
+                    <div class="h-12 w-12 mx-auto mb-3 bg-gray-100 rounded-lg flex items-center justify-center">
+                        <span class="text-lg font-bold text-gray-600" data-mock="true">R</span>
+                    </div>
+                    <h3 class="font-semibold text-gray-900 mb-1" data-mock="true">Realme</h3>
+                    <p class="text-sm text-gray-500" data-mock="true">43 phones</p>
+                </div>
+                <!-- @END_MAP )) -->
+            </div>
+        </section>
+        <!-- @END_COMPONENT: BrandsGrid -->
+
+        <!-- Featured Mobiles -->
+        <!-- @COMPONENT: FeaturedMobiles -->
+        <section class="mb-12">
+            <div class="flex items-center justify-between mb-6">
+                <h2 class="text-2xl font-bold text-gray-900">Latest & Featured Mobiles</h2>
+                <div class="flex space-x-2">
+                    <button class="px-4 py-2 text-sm font-medium text-primary-600 bg-primary-50 rounded-lg hover:bg-primary-100" data-filter="latest">
+                        Latest
+                    </button>
+                    <button class="px-4 py-2 text-sm font-medium text-gray-600 bg-gray-100 rounded-lg hover:bg-gray-200" data-filter="popular">
+                        Popular
+                    </button>
+                    <button class="px-4 py-2 text-sm font-medium text-gray-600 bg-gray-100 rounded-lg hover:bg-gray-200" data-filter="budget">
+                        Budget
+                    </button>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                <!-- @MAP: featuredMobiles.map(mobile => ( -->
+                <!-- @COMPONENT: MobileCard -->
+                <div class="bg-white rounded-lg border hover:shadow-lg transition-shadow overflow-hidden cursor-pointer" data-event="click:navigateToMobile">
+                    <div class="aspect-square bg-gray-50 p-4">
+                        <!-- Samsung Galaxy S24 Ultra product image -->
+                        <img src="https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=400&h=400" 
+                             alt="Samsung Galaxy S24 Ultra" class="w-full h-full object-contain" data-bind="mobile.imageUrl" />
+                    </div>
+                    <div class="p-4">
+                        <div class="flex items-center justify-between mb-2">
+                            <span class="text-xs font-medium text-primary-600 bg-primary-50 px-2 py-1 rounded" data-bind="mobile.brand">Samsung</span>
+                            <span class="text-xs text-gray-500" data-bind="mobile.releaseDate">2024</span>
+                        </div>
+                        <h3 class="font-semibold text-gray-900 mb-2 line-clamp-2" data-bind="mobile.name">Galaxy S24 Ultra</h3>
+                        <div class="text-lg font-bold text-green-600 mb-3" data-bind="mobile.price">₨ 449,999</div>
+                        
+                        <!-- Key Specs -->
+                        <div class="space-y-1 text-sm text-gray-600">
+                            <div class="flex justify-between">
+                                <span>RAM:</span>
+                                <span data-bind="mobile.shortSpecs.ram">12GB</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span>Storage:</span>
+                                <span data-bind="mobile.shortSpecs.storage">256GB</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span>Camera:</span>
+                                <span data-bind="mobile.shortSpecs.camera">200MP</span>
+                            </div>
+                        </div>
+
+                        <div class="flex space-x-2 mt-4">
+                            <button class="flex-1 px-3 py-2 text-sm font-medium text-primary-600 border border-primary-600 rounded hover:bg-primary-50" data-event="click:viewDetails">
+                                View Details
+                            </button>
+                            <button class="px-3 py-2 text-sm font-medium text-gray-600 border border-gray-300 rounded hover:bg-gray-50" data-event="click:addToCompare">
+                                <i data-lucide="plus" class="h-4 w-4"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-lg border hover:shadow-lg transition-shadow overflow-hidden cursor-pointer">
+                    <div class="aspect-square bg-gray-50 p-4">
+                        <!-- iPhone 15 Pro Max product image -->
+                        <img src="https://pixabay.com/get/gc01d3e7010fa72ba44f120bee7a285fa80d7eee4aed3c67f42f9acaa41585e457695edc79e3c05146e604312f075392201fb59e3c151a84bc950b41dfa044b53_1280.jpg" 
+                             alt="iPhone 15 Pro Max" class="w-full h-full object-contain" data-mock="true" />
+                    </div>
+                    <div class="p-4">
+                        <div class="flex items-center justify-between mb-2">
+                            <span class="text-xs font-medium text-primary-600 bg-primary-50 px-2 py-1 rounded" data-mock="true">Apple</span>
+                            <span class="text-xs text-gray-500" data-mock="true">2023</span>
+                        </div>
+                        <h3 class="font-semibold text-gray-900 mb-2 line-clamp-2" data-mock="true">iPhone 15 Pro Max</h3>
+                        <div class="text-lg font-bold text-green-600 mb-3" data-mock="true">₨ 519,999</div>
+                        
+                        <div class="space-y-1 text-sm text-gray-600">
+                            <div class="flex justify-between">
+                                <span>RAM:</span>
+                                <span data-mock="true">8GB</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span>Storage:</span>
+                                <span data-mock="true">256GB</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span>Camera:</span>
+                                <span data-mock="true">48MP</span>
+                            </div>
+                        </div>
+
+                        <div class="flex space-x-2 mt-4">
+                            <button class="flex-1 px-3 py-2 text-sm font-medium text-primary-600 border border-primary-600 rounded hover:bg-primary-50">
+                                View Details
+                            </button>
+                            <button class="px-3 py-2 text-sm font-medium text-gray-600 border border-gray-300 rounded hover:bg-gray-50">
+                                <i data-lucide="plus" class="h-4 w-4"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-lg border hover:shadow-lg transition-shadow overflow-hidden cursor-pointer">
+                    <div class="aspect-square bg-gray-50 p-4">
+                        <!-- Xiaomi 14 Pro product image -->
+                        <img src="https://images.unsplash.com/photo-1574944985070-8f3ebc6b79d2?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=400&h=400" 
+                             alt="Xiaomi 14 Pro" class="w-full h-full object-contain" data-mock="true" />
+                    </div>
+                    <div class="p-4">
+                        <div class="flex items-center justify-between mb-2">
+                            <span class="text-xs font-medium text-primary-600 bg-primary-50 px-2 py-1 rounded" data-mock="true">Xiaomi</span>
+                            <span class="text-xs text-gray-500" data-mock="true">2024</span>
+                        </div>
+                        <h3 class="font-semibold text-gray-900 mb-2 line-clamp-2" data-mock="true">Xiaomi 14 Pro</h3>
+                        <div class="text-lg font-bold text-green-600 mb-3" data-mock="true">₨ 189,999</div>
+                        
+                        <div class="space-y-1 text-sm text-gray-600">
+                            <div class="flex justify-between">
+                                <span>RAM:</span>
+                                <span data-mock="true">12GB</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span>Storage:</span>
+                                <span data-mock="true">256GB</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span>Camera:</span>
+                                <span data-mock="true">50MP</span>
+                            </div>
+                        </div>
+
+                        <div class="flex space-x-2 mt-4">
+                            <button class="flex-1 px-3 py-2 text-sm font-medium text-primary-600 border border-primary-600 rounded hover:bg-primary-50">
+                                View Details
+                            </button>
+                            <button class="px-3 py-2 text-sm font-medium text-gray-600 border border-gray-300 rounded hover:bg-gray-50">
+                                <i data-lucide="plus" class="h-4 w-4"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-lg border hover:shadow-lg transition-shadow overflow-hidden cursor-pointer">
+                    <div class="aspect-square bg-gray-50 p-4">
+                        <!-- OnePlus 12 product image -->
+                        <img src="https://images.unsplash.com/photo-1585060544812-6b45742d762f?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=400&h=400" 
+                             alt="OnePlus 12" class="w-full h-full object-contain" data-mock="true" />
+                    </div>
+                    <div class="p-4">
+                        <div class="flex items-center justify-between mb-2">
+                            <span class="text-xs font-medium text-primary-600 bg-primary-50 px-2 py-1 rounded" data-mock="true">OnePlus</span>
+                            <span class="text-xs text-gray-500" data-mock="true">2024</span>
+                        </div>
+                        <h3 class="font-semibold text-gray-900 mb-2 line-clamp-2" data-mock="true">OnePlus 12</h3>
+                        <div class="text-lg font-bold text-green-600 mb-3" data-mock="true">₨ 299,999</div>
+                        
+                        <div class="space-y-1 text-sm text-gray-600">
+                            <div class="flex justify-between">
+                                <span>RAM:</span>
+                                <span data-mock="true">16GB</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span>Storage:</span>
+                                <span data-mock="true">512GB</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span>Camera:</span>
+                                <span data-mock="true">50MP</span>
+                            </div>
+                        </div>
+
+                        <div class="flex space-x-2 mt-4">
+                            <button class="flex-1 px-3 py-2 text-sm font-medium text-primary-600 border border-primary-600 rounded hover:bg-primary-50">
+                                View Details
+                            </button>
+                            <button class="px-3 py-2 text-sm font-medium text-gray-600 border border-gray-300 rounded hover:bg-gray-50">
+                                <i data-lucide="plus" class="h-4 w-4"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <!-- @END_MAP )) -->
+                <!-- @END_COMPONENT: MobileCard -->
+            </div>
+
+            <div class="text-center mt-8">
+                <button class="px-6 py-3 bg-primary-600 text-white font-medium rounded-lg hover:bg-primary-700 transition-colors">
+                    View All Mobiles
+                </button>
+            </div>
+        </section>
+        <!-- @END_COMPONENT: FeaturedMobiles -->
+
+        <!-- Price Ranges Section -->
+        <!-- @COMPONENT: PriceRanges -->
+        <section class="mb-12">
+            <h2 class="text-2xl font-bold text-gray-900 mb-6">Shop by Price Range</h2>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div class="bg-gradient-to-br from-green-50 to-green-100 border border-green-200 rounded-lg p-6 hover:shadow-md transition-shadow cursor-pointer">
+                    <h3 class="text-lg font-semibold text-green-800 mb-2">Budget Phones</h3>
+                    <p class="text-green-600 text-2xl font-bold mb-2">Under ₨50,000</p>
+                    <p class="text-sm text-green-700 mb-4">Great value smartphones with essential features</p>
+                    <span class="text-sm font-medium text-green-800" data-bind="priceRange.budget.count">250+ phones</span>
+                </div>
+
+                <div class="bg-gradient-to-br from-blue-50 to-blue-100 border border-blue-200 rounded-lg p-6 hover:shadow-md transition-shadow cursor-pointer">
+                    <h3 class="text-lg font-semibold text-blue-800 mb-2">Mid-Range</h3>
+                    <p class="text-blue-600 text-2xl font-bold mb-2">₨50K - ₨150K</p>
+                    <p class="text-sm text-blue-700 mb-4">Perfect balance of features and performance</p>
+                    <span class="text-sm font-medium text-blue-800" data-bind="priceRange.midrange.count">180+ phones</span>
+                </div>
+
+                <div class="bg-gradient-to-br from-purple-50 to-purple-100 border border-purple-200 rounded-lg p-6 hover:shadow-md transition-shadow cursor-pointer">
+                    <h3 class="text-lg font-semibold text-purple-800 mb-2">Flagship</h3>
+                    <p class="text-purple-600 text-2xl font-bold mb-2">Above ₨150K</p>
+                    <p class="text-sm text-purple-700 mb-4">Premium smartphones with cutting-edge technology</p>
+                    <span class="text-sm font-medium text-purple-800" data-bind="priceRange.flagship.count">85+ phones</span>
+                </div>
+            </div>
+        </section>
+        <!-- @END_COMPONENT: PriceRanges -->
+
+        <!-- Mobile Detail Modal/Page Preview -->
+        <!-- @COMPONENT: MobileDetailPreview -->
+        <section class="mb-12">
+            <h2 class="text-2xl font-bold text-gray-900 mb-6">Featured Review</h2>
+            <div class="bg-white rounded-lg border shadow-sm overflow-hidden">
+                <div class="lg:flex">
+                    <!-- Image Gallery -->
+                    <div class="lg:w-1/2 p-6">
+                        <div class="aspect-square bg-gray-50 rounded-lg mb-4">
+                            <!-- Samsung Galaxy S24 Ultra detailed product showcase -->
+                            <img src="https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=600&h=600" 
+                                 alt="Samsung Galaxy S24 Ultra detailed view" class="w-full h-full object-contain rounded-lg" />
+                        </div>
+                        <div class="grid grid-cols-4 gap-2">
+                            <!-- Smartphone side view with titanium frame -->
+                            <img src="https://images.unsplash.com/photo-1598300042247-d088f8ab3a91?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=150&h=150" 
+                                 alt="Smartphone side view" class="aspect-square object-cover rounded border" />
+                            <!-- Smartphone back camera system close-up -->
+                            <img src="https://pixabay.com/get/g1bf6b911ac67075d8285da4c3e3df04328ab2c460b5749d30326d8e6845d3b2b106a3be24ffffeab553f854c235ba0c192d07afb6d000de68badd80149f0fb7a_1280.jpg" 
+                                 alt="Smartphone camera system" class="aspect-square object-cover rounded border" />
+                            <!-- Smartphone screen display with vibrant colors -->
+                            <img src="https://images.unsplash.com/photo-1512941937669-90a1b58e7e9c?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=150&h=150" 
+                                 alt="Smartphone screen display" class="aspect-square object-cover rounded border" />
+                            <!-- Smartphone with stylus and premium accessories -->
+                            <img src="https://images.unsplash.com/photo-1565849904461-04a58ad377e0?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=150&h=150" 
+                                 alt="Smartphone with stylus" class="aspect-square object-cover rounded border" />
+                        </div>
+                    </div>
+
+                    <!-- Specifications -->
+                    <div class="lg:w-1/2 p-6">
+                        <div class="mb-4">
+                            <span class="text-sm font-medium text-primary-600 bg-primary-50 px-2 py-1 rounded" data-bind="mobile.brand">Samsung</span>
+                        </div>
+                        <h3 class="text-2xl font-bold text-gray-900 mb-2" data-bind="mobile.name">Galaxy S24 Ultra</h3>
+                        <div class="text-3xl font-bold text-green-600 mb-6" data-bind="mobile.price">₨ 449,999</div>
+
+                        <!-- Key Features -->
+                        <div class="space-y-4 mb-6">
+                            <div class="flex items-center justify-between py-2 border-b border-gray-100">
+                                <span class="text-gray-600">Display</span>
+                                <span class="font-medium" data-bind="mobile.specs.display">6.8" Dynamic AMOLED 2X</span>
+                            </div>
+                            <div class="flex items-center justify-between py-2 border-b border-gray-100">
+                                <span class="text-gray-600">Processor</span>
+                                <span class="font-medium" data-bind="mobile.specs.processor">Snapdragon 8 Gen 3</span>
+                            </div>
+                            <div class="flex items-center justify-between py-2 border-b border-gray-100">
+                                <span class="text-gray-600">RAM</span>
+                                <span class="font-medium" data-bind="mobile.specs.ram">12GB</span>
+                            </div>
+                            <div class="flex items-center justify-between py-2 border-b border-gray-100">
+                                <span class="text-gray-600">Storage</span>
+                                <span class="font-medium" data-bind="mobile.specs.storage">256GB</span>
+                            </div>
+                            <div class="flex items-center justify-between py-2 border-b border-gray-100">
+                                <span class="text-gray-600">Main Camera</span>
+                                <span class="font-medium" data-bind="mobile.specs.camera">200MP + 50MP + 12MP + 10MP</span>
+                            </div>
+                            <div class="flex items-center justify-between py-2 border-b border-gray-100">
+                                <span class="text-gray-600">Battery</span>
+                                <span class="font-medium" data-bind="mobile.specs.battery">5000mAh</span>
+                            </div>
+                        </div>
+
+                        <!-- Action Buttons -->
+                        <div class="flex space-x-4">
+                            <button class="flex-1 px-6 py-3 bg-primary-600 text-white font-medium rounded-lg hover:bg-primary-700 transition-colors">
+                                View Full Specifications
+                            </button>
+                            <button class="px-6 py-3 border border-gray-300 text-gray-700 font-medium rounded-lg hover:bg-gray-50 transition-colors">
+                                Add to Compare
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+        <!-- @END_COMPONENT: MobileDetailPreview -->
+
+        <!-- Comparison Preview -->
+        <!-- @COMPONENT: ComparisonPreview -->
+        <section class="mb-12">
+            <h2 class="text-2xl font-bold text-gray-900 mb-6">Popular Comparisons</h2>
+            <div class="bg-white rounded-lg border shadow-sm overflow-hidden">
+                <div class="overflow-x-auto">
+                    <table class="w-full">
+                        <thead class="bg-gray-50 border-b">
+                            <tr>
+                                <th class="text-left p-4 font-medium text-gray-900 min-w-[200px]">Specification</th>
+                                <th class="text-center p-4 min-w-[200px]">
+                                    <div class="text-center">
+                                        <!-- iPhone 15 Pro Max comparison image -->
+                                        <img src="https://pixabay.com/get/g59c0306a462cc355c2b8d9ae1bbf9ba4bb3904059c7bf41f6c61ebe3c721c0818cdc71a943a969e0f51a846b831ee82ad1209d67b9f78fce223eb6cd15b1c64f_1280.jpg" 
+                                             alt="iPhone 15 Pro Max comparison" class="w-16 h-16 object-contain mx-auto mb-2" />
+                                        <div class="font-semibold text-sm" data-mock="true">iPhone 15 Pro Max</div>
+                                        <div class="text-green-600 font-bold text-sm" data-mock="true">₨ 519,999</div>
+                                    </div>
+                                </th>
+                                <th class="text-center p-4 min-w-[200px]">
+                                    <div class="text-center">
+                                        <!-- Samsung Galaxy S24 Ultra comparison image -->
+                                        <img src="https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=100&h=100" 
+                                             alt="Samsung Galaxy S24 Ultra comparison" class="w-16 h-16 object-contain mx-auto mb-2" />
+                                        <div class="font-semibold text-sm" data-mock="true">Galaxy S24 Ultra</div>
+                                        <div class="text-green-600 font-bold text-sm" data-mock="true">₨ 449,999</div>
+                                    </div>
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-100">
+                            <tr>
+                                <td class="p-4 font-medium text-gray-700">Display</td>
+                                <td class="p-4 text-center text-sm" data-mock="true">6.7" Super Retina XDR</td>
+                                <td class="p-4 text-center text-sm" data-mock="true">6.8" Dynamic AMOLED 2X</td>
+                            </tr>
+                            <tr>
+                                <td class="p-4 font-medium text-gray-700">Processor</td>
+                                <td class="p-4 text-center text-sm" data-mock="true">A17 Pro</td>
+                                <td class="p-4 text-center text-sm" data-mock="true">Snapdragon 8 Gen 3</td>
+                            </tr>
+                            <tr>
+                                <td class="p-4 font-medium text-gray-700">RAM</td>
+                                <td class="p-4 text-center text-sm" data-mock="true">8GB</td>
+                                <td class="p-4 text-center text-sm" data-mock="true">12GB</td>
+                            </tr>
+                            <tr>
+                                <td class="p-4 font-medium text-gray-700">Storage</td>
+                                <td class="p-4 text-center text-sm" data-mock="true">256GB</td>
+                                <td class="p-4 text-center text-sm" data-mock="true">256GB</td>
+                            </tr>
+                            <tr>
+                                <td class="p-4 font-medium text-gray-700">Main Camera</td>
+                                <td class="p-4 text-center text-sm" data-mock="true">48MP</td>
+                                <td class="p-4 text-center text-sm" data-mock="true">200MP</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="p-4 bg-gray-50 text-center">
+                    <button class="px-6 py-2 bg-primary-600 text-white font-medium rounded-lg hover:bg-primary-700 transition-colors">
+                        View Detailed Comparison
+                    </button>
+                </div>
+            </div>
+        </section>
+        <!-- @END_COMPONENT: ComparisonPreview -->
+    </main>
+
+    <!-- @COMPONENT: Footer -->
+    <footer class="bg-gray-900 text-white">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
+                <!-- Company Info -->
+                <div class="md:col-span-1">
+                    <div class="flex items-center mb-4">
+                        <i data-lucide="smartphone" class="h-8 w-8 text-primary-400 mr-2"></i>
+                        <span class="text-xl font-bold">MobilePrices.pk</span>
+                    </div>
+                    <p class="text-gray-400 text-sm mb-4">
+                        Pakistan's most trusted mobile phone price comparison website. Find the best deals on smartphones from all major brands.
+                    </p>
+                    <div class="flex space-x-4">
+                        <a href="#" class="text-gray-400 hover:text-white">
+                            <i data-lucide="facebook" class="h-5 w-5"></i>
+                        </a>
+                        <a href="#" class="text-gray-400 hover:text-white">
+                            <i data-lucide="twitter" class="h-5 w-5"></i>
+                        </a>
+                        <a href="#" class="text-gray-400 hover:text-white">
+                            <i data-lucide="instagram" class="h-5 w-5"></i>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Popular Brands -->
+                <div>
+                    <h3 class="font-semibold mb-4">Popular Brands</h3>
+                    <ul class="space-y-2 text-sm">
+                        <li><a href="#" class="text-gray-400 hover:text-white" data-bind="brand.samsung">Samsung</a></li>
+                        <li><a href="#" class="text-gray-400 hover:text-white" data-bind="brand.apple">Apple</a></li>
+                        <li><a href="#" class="text-gray-400 hover:text-white" data-bind="brand.xiaomi">Xiaomi</a></li>
+                        <li><a href="#" class="text-gray-400 hover:text-white" data-bind="brand.oppo">Oppo</a></li>
+                        <li><a href="#" class="text-gray-400 hover:text-white" data-bind="brand.vivo">Vivo</a></li>
+                    </ul>
+                </div>
+
+                <!-- Quick Links -->
+                <div>
+                    <h3 class="font-semibold mb-4">Quick Links</h3>
+                    <ul class="space-y-2 text-sm">
+                        <li><a href="#" class="text-gray-400 hover:text-white">Latest Mobiles</a></li>
+                        <li><a href="#" class="text-gray-400 hover:text-white">Price Comparison</a></li>
+                        <li><a href="#" class="text-gray-400 hover:text-white">Mobile Reviews</a></li>
+                        <li><a href="#" class="text-gray-400 hover:text-white">Buying Guide</a></li>
+                        <li><a href="#" class="text-gray-400 hover:text-white">Contact Us</a></li>
+                    </ul>
+                </div>
+
+                <!-- Price Ranges -->
+                <div>
+                    <h3 class="font-semibold mb-4">Price Ranges</h3>
+                    <ul class="space-y-2 text-sm">
+                        <li><a href="#" class="text-gray-400 hover:text-white">Under ₨20,000</a></li>
+                        <li><a href="#" class="text-gray-400 hover:text-white">₨20,000 - ₨50,000</a></li>
+                        <li><a href="#" class="text-gray-400 hover:text-white">₨50,000 - ₨100,000</a></li>
+                        <li><a href="#" class="text-gray-400 hover:text-white">₨100,000 - ₨200,000</a></li>
+                        <li><a href="#" class="text-gray-400 hover:text-white">Above ₨200,000</a></li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="border-t border-gray-800 mt-8 pt-8">
+                <div class="flex flex-col md:flex-row justify-between items-center">
+                    <p class="text-gray-400 text-sm">
+                        © 2025 MobilePrices.pk. All rights reserved.
+                    </p>
+                    <div class="flex space-x-6 mt-4 md:mt-0 text-sm">
+                        <a href="#" class="text-gray-400 hover:text-white">Privacy Policy</a>
+                        <a href="#" class="text-gray-400 hover:text-white">Terms of Service</a>
+                        <a href="#" class="text-gray-400 hover:text-white">Sitemap</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </footer>
+    <!-- @END_COMPONENT: Footer -->
+
+    <!-- Initialize Lucide Icons -->
+    <script>
+        // TODO: Implement search functionality, mobile filtering, comparison features, and dynamic content loading
+        (function() {
+            // Initialize Lucide icons
+            lucide.createIcons();
+            
+            // Basic interactivity placeholders
+            document.addEventListener('DOMContentLoaded', function() {
+                // Mobile card click handlers
+                const mobileCards = document.querySelectorAll('[data-event*="navigateToMobile"]');
+                mobileCards.forEach(card => {
+                    card.addEventListener('click', function() {
+                        // TODO: Navigate to mobile detail page
+                        console.log('Navigate to mobile detail');
+                    });
+                });
+
+                // Brand card click handlers
+                const brandCards = document.querySelectorAll('[data-event*="navigateToBrand"]');
+                brandCards.forEach(card => {
+                    card.addEventListener('click', function() {
+                        // TODO: Navigate to brand category page
+                        console.log('Navigate to brand page');
+                    });
+                });
+
+                // Filter button handlers
+                const filterButtons = document.querySelectorAll('[data-filter]');
+                filterButtons.forEach(button => {
+                    button.addEventListener('click', function() {
+                        // TODO: Implement filtering logic
+                        // Remove active state from other buttons
+                        filterButtons.forEach(btn => {
+                            btn.classList.remove('text-primary-600', 'bg-primary-50');
+                            btn.classList.add('text-gray-600', 'bg-gray-100');
+                        });
+                        // Add active state to clicked button
+                        this.classList.remove('text-gray-600', 'bg-gray-100');
+                        this.classList.add('text-primary-600', 'bg-primary-50');
+                    });
+                });
+
+                // Add to compare handlers
+                const compareButtons = document.querySelectorAll('[data-event*="addToCompare"]');
+                compareButtons.forEach(button => {
+                    button.addEventListener('click', function(e) {
+                        e.stopPropagation();
+                        // TODO: Add to comparison functionality
+                        console.log('Add to compare');
+                    });
+                });
+            });
+        })();
+    </script>
+
+    <!-- @STATE: searchQuery:string = '' -->
+    <!-- @STATE: selectedBrand:string = '' -->
+    <!-- @STATE: priceRange:object = {min: 0, max: 1000000} -->
+    <!-- @STATE: compareList:array = [] -->
+
+    <!-- @FUNCTIONALITY: Search should filter mobiles by name, brand, and specifications -->
+    <!-- @FUNCTIONALITY: Brand filtering should update the mobile grid dynamically -->
+    <!-- @FUNCTIONALITY: Price range filters should work with currency formatting -->
+    <!-- @FUNCTIONALITY: Compare feature should allow up to 4 mobiles side-by-side -->
+    <!-- @FUNCTIONALITY: Image galleries should support zoom and multiple view angles -->
+</body>
+</html>

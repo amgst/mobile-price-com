@@ -38,13 +38,10 @@ export function SafeImage({
   // Convert src to array for fallback handling
   const srcArray = Array.isArray(src) ? src : [src];
   
-  // Add brand-specific fallback images
+  // Add local fallback images to avoid CORS/ORB issues
   const brandFallbacks = [
-    'https://fdn2.gsmarena.com/vv/bigpic/apple-iphone-15-pro-max.jpg',
-    'https://fdn2.gsmarena.com/vv/bigpic/samsung-galaxy-s24-ultra-5g.jpg',
-    'https://fdn2.gsmarena.com/vv/bigpic/google-pixel-8-pro.jpg',
-    'https://fdn2.gsmarena.com/vv/bigpic/xiaomi-14-ultra.jpg',
-    'https://fdn2.gsmarena.com/vv/bigpic/oneplus-12.jpg'
+    '/images/og-default-mobile.jpg',
+    '/images/og-default.jpg'
   ];
 
   const allSources = [...srcArray, ...brandFallbacks];

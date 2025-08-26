@@ -55,6 +55,13 @@ export const handler: Handler = async (event, context) => {
     }
 
     if (path === '/mobiles' && method === 'GET') {
+      const brandParam = event.queryStringParameters?.brand;
+      
+      if (brandParam) {
+        const brandMobiles = await db.select().from(mobiles).where(eq(mobiles.brand, brandParam));
+        return response(200, brandMobiles);
+      }
+      
       const allMobiles = await db.select().from(mobiles);
       return response(200, allMobiles);
     }

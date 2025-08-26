@@ -2,8 +2,8 @@ User-agent: *
 Allow: /
 
 # Sitemaps
-Sitemap: https://mobileprices.pk/sitemap.xml
-Sitemap: https://mobileprices.pk/sitemap-index.xml
+Sitemap: https://mobile-price.com/sitemap.xml
+Sitemap: https://mobile-price.com/sitemap-index.xml
 
 # Block admin and API routes
 Disallow: /admin/

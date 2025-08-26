@@ -2,9 +2,9 @@ import { Handler } from '@netlify/functions';
 import pkg from "pg";
 const { Pool } = pkg;
 import { drizzle } from "drizzle-orm/node-postgres";
-import * as schema from "../../shared/schema.js";
+import * as schema from "../../shared/schema.ts";
 import { eq, like, or, and, sql } from "drizzle-orm";
-import { brands, mobiles, users } from "../../shared/schema.js";
+import { brands, mobiles, users } from "../../shared/schema.ts";
 
 // Database connection
 const createDbConnection = () => {

@@ -34,10 +34,10 @@ export function Footer() {
           <div className="md:col-span-1">
             <div className="flex items-center mb-4">
               <Smartphone className="h-8 w-8 text-primary mr-2" />
-              <span className="text-xl font-bold">MobilePrices.pk</span>
+              <span className="text-xl font-bold">Mobile Price</span>
             </div>
             <p className="text-gray-400 text-sm mb-4">
-              Pakistan's most trusted mobile phone price comparison website. Find the best deals on smartphones from all major brands.
+              Your trusted mobile phone price comparison website. Find the best deals on smartphones from all major brands with detailed specifications and reviews.
             </p>
             <div className="flex space-x-4">
               <a 

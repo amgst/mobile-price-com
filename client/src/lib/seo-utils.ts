@@ -59,7 +59,7 @@ function extractMainCamera(cameraText: string): string {
  * Generate canonical URL
  */
 export function generateCanonicalUrl(path: string): string {
-  const baseUrl = import.meta.env.VITE_SITE_URL || 'https://mobileprices.pk';
+  const baseUrl = import.meta.env.VITE_SITE_URL || 'https://mobile-price.com';
   return `${baseUrl}${path}`;
 }
 

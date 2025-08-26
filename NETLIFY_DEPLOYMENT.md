@@ -1,6 +1,6 @@
-# Netlify Deployment Guide
+# Netlify Deployment Guide - Mobile Price
 
-Your mobile phone comparison website is now configured for Netlify deployment! Here's what has been set up:
+Your mobile phone comparison website "Mobile Price" (https://mobile-price.com/) is now configured for Netlify deployment! Here's what has been set up:
 
 ## ✅ Files Created/Updated
 

@@ -25,8 +25,8 @@ export default function Home() {
   return (
     <>
       <SEOHead 
-        title="Mobile Prices in Pakistan 2025 - Compare Smartphones & Reviews"
-        description="Compare mobile phone prices in Pakistan. Find latest smartphone specifications, reviews, and best deals from all brands including Samsung, Apple, Xiaomi and more."
+        title="Mobile Price - Compare Mobile Phones & Prices | Latest Smartphone Reviews"
+        description="Compare mobile phone prices and specifications at Mobile Price. Find the best deals on smartphones from top brands including Samsung, Apple, Xiaomi and more."
         canonical="/"
       />
       
@@ -39,10 +39,10 @@ export default function Home() {
           <section className="mb-12">
             <div className="text-center mb-8">
               <h1 className="text-4xl font-bold text-gray-900 mb-4">
-                Find Best Mobile Prices in Pakistan 2025
+                Compare Mobile Phones & Find Best Prices
               </h1>
               <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-                Compare smartphone specifications, prices, and reviews from all major brands. Get the best deals on latest mobile phones.
+                Your ultimate destination for mobile phone comparisons. Compare specifications, prices, and reviews from all major brands to find your perfect smartphone.
               </p>
             </div>
 

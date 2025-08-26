@@ -35,7 +35,7 @@ export function Header() {
           <div className="flex items-center">
             <Link href="/" className="flex items-center" data-testid="link-home">
               <Smartphone className="h-8 w-8 text-primary mr-2" />
-              <span className="text-xl font-bold text-gray-900">MobilePrices.pk</span>
+              <span className="text-xl font-bold text-gray-900">Mobile Price</span>
             </Link>
           </div>
 

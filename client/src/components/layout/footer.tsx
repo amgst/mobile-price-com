@@ -19,11 +19,11 @@ export function Footer() {
   ];
 
   const priceRanges = [
-    { name: "Under ₨20,000", href: "/search?price=0-20000" },
-    { name: "₨20,000 - ₨50,000", href: "/search?price=20000-50000" },
-    { name: "₨50,000 - ₨100,000", href: "/search?price=50000-100000" },
-    { name: "₨100,000 - ₨200,000", href: "/search?price=100000-200000" },
-    { name: "Above ₨200,000", href: "/search?price=200000-999999" },
+    { name: "Under $200", href: "/search?price=0-20000" },
+    { name: "$200 - $500", href: "/search?price=20000-50000" },
+    { name: "$500 - $1000", href: "/search?price=50000-100000" },
+    { name: "$1000 - $2000", href: "/search?price=100000-200000" },
+    { name: "Above $2000", href: "/search?price=200000-999999" },
   ];
 
   return (
@@ -125,7 +125,7 @@ export function Footer() {
         <div className="border-t border-gray-800 mt-8 pt-8">
           <div className="flex flex-col md:flex-row justify-between items-center">
             <p className="text-gray-400 text-sm">
-              © 2025 MobilePrices.pk. All rights reserved.
+              © 2025 Mobile Price. All rights reserved.
             </p>
             <div className="flex space-x-6 mt-4 md:mt-0 text-sm">
               <Link 

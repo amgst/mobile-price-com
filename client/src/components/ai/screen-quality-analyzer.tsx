@@ -20,6 +20,7 @@ import {
 import { aiAnalysisService, type ScreenQualityAnalysis } from "@/lib/ai-analysis-service";
 import type { Mobile } from "@shared/schema";
 import { getDisplaySpecs } from "@/lib/spec-helpers";
+import { SafeImage } from "@/components/ui/safe-image";
 
 interface ScreenQualityAnalyzerProps {
   mobile: Mobile;
@@ -90,7 +91,7 @@ export function ScreenQualityAnalyzer({ mobile, onClose }: ScreenQualityAnalyzer
           <Card className="p-4 bg-gradient-to-r from-indigo-50 to-purple-50 dark:from-indigo-950/20 dark:to-purple-950/20">
             <div className="flex items-center gap-4">
               <div className="w-16 h-16 rounded-lg bg-white p-2 shadow-sm">
-                <img 
+                <SafeImage 
                   src={mobile.imageUrl} 
                   alt={mobile.name}
                   className="w-full h-full object-contain"

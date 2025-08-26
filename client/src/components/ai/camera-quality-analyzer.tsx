@@ -20,6 +20,7 @@ import {
 import { aiAnalysisService, type CameraQualityAnalysis } from "@/lib/ai-analysis-service";
 import type { Mobile } from "@shared/schema";
 import { getCameraSpecs } from "@/lib/spec-helpers";
+import { SafeImage } from "@/components/ui/safe-image";
 
 interface CameraQualityAnalyzerProps {
   mobile: Mobile;
@@ -90,7 +91,7 @@ export function CameraQualityAnalyzer({ mobile, onClose }: CameraQualityAnalyzer
           <Card className="p-4 bg-gradient-to-r from-blue-50 to-cyan-50 dark:from-blue-950/20 dark:to-cyan-950/20">
             <div className="flex items-center gap-4">
               <div className="w-16 h-16 rounded-lg bg-white p-2 shadow-sm">
-                <img 
+                <SafeImage 
                   src={mobile.imageUrl} 
                   alt={mobile.name}
                   className="w-full h-full object-contain"

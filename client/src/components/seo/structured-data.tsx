@@ -1,3 +1,5 @@
+import { generateOGImageUrl } from "@/lib/seo-utils";
+
 interface WebsiteSchema {
   "@context": "https://schema.org";
   "@type": "WebSite";
@@ -130,7 +132,9 @@ export function generateProductSchema(mobile: any): ProductSchema {
     "@type": "Product",
     name: mobile.name,
     description: `${mobile.name} with ${mobile.shortSpecs?.ram} RAM, ${mobile.shortSpecs?.storage} storage, ${mobile.shortSpecs?.camera} camera. Complete specifications and price in Pakistan.`,
-    image: mobile.carouselImages || [mobile.imageUrl],
+    image: mobile.carouselImages && mobile.carouselImages.length > 0 
+      ? mobile.carouselImages 
+      : [generateOGImageUrl(mobile)],
     brand: {
       "@type": "Brand",
       name: mobile.brand
@@ -239,7 +243,7 @@ export function generateCollectionPageSchema(brand: any, mobiles: any[]): Collec
         position: index + 1,
         name: mobile.name,
         url: `${baseUrl}/${brand.slug}/${mobile.slug}`,
-        image: mobile.imageUrl,
+        image: generateOGImageUrl(mobile),
         offers: {
           "@type": "Offer",
           price: mobile.price?.replace(/[₨,\s]/g, '') || "0",

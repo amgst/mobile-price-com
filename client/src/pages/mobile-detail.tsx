@@ -6,6 +6,7 @@ import { Breadcrumbs } from "@/components/layout/breadcrumbs";
 import { SEOHead } from "@/components/seo/seo-head";
 import { RichMetaTags } from "@/components/seo/meta-tags";
 import { generateProductSchema, generateBreadcrumbSchema, generateFAQSchema } from "@/components/seo/structured-data";
+import { generateOGImageUrl } from "@/lib/seo-utils";
 import { TechnicalHighlights, PriceAnalysis, FrequentlyAskedQuestions, ComparisonSuggestions, ExpertReview } from "@/components/seo/rich-content";
 import { MobileHero } from "@/components/mobile/mobile-hero";
 import { SpecsTable } from "@/components/mobile/specs-table";
@@ -87,6 +88,7 @@ export default function MobileDetail() {
         title={`${mobile.name} Price in Pakistan, Full Specifications & Review (2025)`}
         description={`${mobile.name} price in Pakistan is ${mobile.price}. Complete specifications: ${mobile.shortSpecs.ram} RAM, ${mobile.shortSpecs.storage} storage, ${mobile.shortSpecs.camera} camera. Expert review and comparison.`}
         canonical={`/${brandSlug}/${mobileSlug}`}
+        ogImage={generateOGImageUrl(mobile)}
         jsonLd={combinedSchema}
       />
       <RichMetaTags mobile={mobile} page="mobile" />

@@ -19,8 +19,7 @@ export default function BrandCategory() {
   });
 
   const { data: mobiles, isLoading } = useQuery<Mobile[]>({
-    queryKey: ["/api/mobiles", "brand", brandSlug],
-    queryFn: () => fetch(`/api/mobiles?brand=${brandSlug}`).then(res => res.json()),
+    queryKey: [`/api/mobiles?brand=${brandSlug}`],
     enabled: !!brandSlug,
   });
 

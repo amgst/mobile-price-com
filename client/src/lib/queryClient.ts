@@ -37,7 +37,12 @@ export const getQueryFn: <T>(options: {
   ({ on401: unauthorizedBehavior }) =>
   async ({ queryKey }) => {
     const baseUrl = getApiBaseUrl();
-    const url = queryKey.join("/").replace('/api', baseUrl);
+    let url = queryKey.join("/");
+    
+    // Replace /api with the correct base URL, preserving query parameters
+    if (url.startsWith('/api')) {
+      url = url.replace('/api', baseUrl);
+    }
     
     const res = await fetch(url, {
       credentials: "include",

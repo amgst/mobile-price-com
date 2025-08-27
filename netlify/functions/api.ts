@@ -8,9 +8,14 @@ import { brands, mobiles, users } from "../../shared/schema.ts";
 
 // Database connection
 const createDbConnection = () => {
+  console.log('Checking DATABASE_URL...');
   if (!process.env.DATABASE_URL) {
+    console.error('DATABASE_URL is not set in environment variables');
     throw new Error("DATABASE_URL must be set");
   }
+  
+  console.log('DATABASE_URL found, length:', process.env.DATABASE_URL.length);
+  console.log('Creating connection pool...');
 
   const pool = new Pool({
     connectionString: process.env.DATABASE_URL,
@@ -21,7 +26,8 @@ const createDbConnection = () => {
     idleTimeoutMillis: 30000,
     connectionTimeoutMillis: 2000,
   });
-
+  
+  console.log('Pool created, initializing drizzle...');
   return drizzle(pool, { schema });
 };
 
@@ -38,6 +44,12 @@ const response = (statusCode: number, body: any) => ({
 });
 
 export const handler: Handler = async (event, context) => {
+  console.log('Function invoked:', {
+    path: event.path,
+    method: event.httpMethod,
+    query: event.queryStringParameters
+  });
+  
   // Handle CORS preflight
   if (event.httpMethod === 'OPTIONS') {
     return response(200, {});
@@ -46,8 +58,12 @@ export const handler: Handler = async (event, context) => {
   const path = event.path.replace('/.netlify/functions/api', '');
   const method = event.httpMethod;
   
+  console.log('Processing request:', { path, method });
+  
   try {
+    console.log('Creating database connection...');
     const db = createDbConnection();
+    console.log('Database connection created successfully');
 
     // Routes
     if (path === '/brands' && method === 'GET') {
@@ -146,7 +162,21 @@ export const handler: Handler = async (event, context) => {
     return response(404, { message: 'Not found' });
 
   } catch (error) {
-    console.error('API Error:', error);
-    return response(500, { message: 'Internal server error' });
+    console.error('API Error Details:', {
+      message: error.message,
+      stack: error.stack,
+      name: error.name,
+      path: path,
+      method: method,
+      env_check: {
+        has_database_url: !!process.env.DATABASE_URL,
+        database_url_length: process.env.DATABASE_URL?.length || 0
+      }
+    });
+    return response(500, { 
+      message: 'Internal server error',
+      error: error.message,
+      timestamp: new Date().toISOString()
+    });
   }
 };

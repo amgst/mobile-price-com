@@ -21,12 +21,25 @@ export async function apiRequest(
 }
 
 type UnauthorizedBehavior = "returnNull" | "throw";
+// Determine the correct API base URL based on environment
+const getApiBaseUrl = () => {
+  // In production (Netlify), use direct function URLs
+  if (window.location.hostname.includes('netlify.app')) {
+    return '/.netlify/functions/api';
+  }
+  // In development, use the local API server
+  return '/api';
+};
+
 export const getQueryFn: <T>(options: {
   on401: UnauthorizedBehavior;
 }) => QueryFunction<T> =
   ({ on401: unauthorizedBehavior }) =>
   async ({ queryKey }) => {
-    const res = await fetch(queryKey.join("/") as string, {
+    const baseUrl = getApiBaseUrl();
+    const url = queryKey.join("/").replace('/api', baseUrl);
+    
+    const res = await fetch(url, {
       credentials: "include",
     });
 

@@ -159,6 +159,25 @@ export const handler: Handler = async (event, context) => {
       return response(401, { success: false, message: 'Invalid credentials' });
     }
 
+    // Default route - API information
+    if (path === '' || path === '/') {
+      return response(200, {
+        message: 'Mobile Price API',
+        version: '1.0.0',
+        endpoints: {
+          '/brands': 'GET - Get all brands',
+          '/mobiles': 'GET - Get all mobiles (supports ?brand=name and ?featured=true)',
+          '/brands/:slug': 'GET - Get brand by slug',
+          '/mobiles/brand/:slug': 'GET - Get mobiles by brand slug',
+          '/mobiles/:brandSlug/:mobileSlug': 'GET - Get specific mobile',
+          '/search': 'GET - Search mobiles (requires ?q=query)',
+          '/featured': 'GET - Get featured mobiles',
+          '/auth/status': 'GET - Check auth status',
+          '/auth/login': 'POST - Login (username/password)'
+        }
+      });
+    }
+
     return response(404, { message: 'Not found' });
 
   } catch (error) {

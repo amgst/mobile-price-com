@@ -5,6 +5,7 @@ import { drizzle } from "drizzle-orm/node-postgres";
 import * as schema from "../../shared/schema.ts";
 import { eq, like, or, and, sql } from "drizzle-orm";
 import { brands, mobiles, users } from "../../shared/schema.ts";
+import { generateSitemapEntries, generateSitemapXML } from "../../client/src/components/seo/sitemap-generator.js";
 
 // Database connection
 const createDbConnection = () => {
@@ -145,6 +146,60 @@ export const handler: Handler = async (event, context) => {
       return response(200, featuredMobiles);
     }
 
+    // Sitemap XML endpoint
+    if (path === '/sitemap.xml' && method === 'GET') {
+      const allMobiles = await db.select().from(mobiles);
+      const allBrands = await db.select().from(brands);
+      
+      const entries = generateSitemapEntries(allMobiles, allBrands);
+      const xml = generateSitemapXML(entries);
+      
+      return {
+        statusCode: 200,
+        headers: {
+          'Content-Type': 'application/xml',
+          'Cache-Control': 'public, max-age=86400',
+          'Access-Control-Allow-Origin': '*'
+        },
+        body: xml
+      };
+    }
+
+    // Robots.txt endpoint
+    if (path === '/robots.txt' && method === 'GET') {
+      const baseUrl = 'https://mobile-price.com';
+      
+      const robotsTxt = `User-agent: *
+Allow: /
+
+# Sitemaps
+Sitemap: ${baseUrl}/sitemap.xml
+
+# Block admin and API routes
+Disallow: /admin/
+Disallow: /api/
+
+# Allow all search engines to crawl
+User-agent: Googlebot
+Allow: /
+
+User-agent: Bingbot
+Allow: /
+
+# Crawl-delay for polite crawling
+Crawl-delay: 1`;
+      
+      return {
+        statusCode: 200,
+        headers: {
+          'Content-Type': 'text/plain',
+          'Cache-Control': 'public, max-age=86400',
+          'Access-Control-Allow-Origin': '*'
+        },
+        body: robotsTxt
+      };
+    }
+
     // Auth endpoints (simplified for Netlify)
     if (path === '/auth/status' && method === 'GET') {
       return response(200, { isAuthenticated: false, username: null });
@@ -174,6 +229,8 @@ export const handler: Handler = async (event, context) => {
           '/mobiles/:brandSlug/:mobileSlug': 'GET - Get specific mobile',
           '/search': 'GET - Search mobiles (requires ?q=query)',
           '/featured': 'GET - Get featured mobiles',
+          '/sitemap.xml': 'GET - XML sitemap for search engines',
+          '/robots.txt': 'GET - Robots.txt for search engine crawlers',
           '/auth/status': 'GET - Check auth status',
           '/auth/login': 'POST - Login (username/password)'
         }

@@ -24,7 +24,9 @@ const createDbConnection = () => {
     },
     max: 1,
     idleTimeoutMillis: 30000,
-    connectionTimeoutMillis: 2000,
+    connectionTimeoutMillis: 10000,
+    acquireTimeoutMillis: 10000,
+    createTimeoutMillis: 10000,
   });
   
   console.log('Pool created, initializing drizzle...');

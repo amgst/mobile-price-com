@@ -23,13 +23,12 @@ export async function apiRequest(
 type UnauthorizedBehavior = "returnNull" | "throw";
 // Determine the correct API base URL based on environment
 const getApiBaseUrl = () => {
-  // In production (Netlify), use direct function URLs
-  if (window.location.hostname.includes('netlify.app')) {
-    return '/.netlify/functions/api';
+  if (window.location.hostname === 'localhost') {
+    return 'http://localhost:8888/api';
   }
-  // In development, use the local API server
-  return '/api';
+  return '/.netlify/functions/api'; // works for both netlify.app and custom domain
 };
+
 
 export const getQueryFn: <T>(options: {
   on401: UnauthorizedBehavior;

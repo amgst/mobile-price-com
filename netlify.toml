@@ -1,70 +1,37 @@
-// netlify/functions/api.js
-import { Pool } from "pg";
+[build]
+  command = "npm run build"
+  functions = "netlify/functions"
+  publish = "dist/public"
 
-const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
-  ssl: { rejectUnauthorized: false },
-});
+[build.environment]
+  NODE_VERSION = "18"
 
-// Generate sitemap XML
-function generateSitemapXml() {
-  // You can make this dynamic with DB data if needed
-  return `<?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-  <url>
-    <loc>https://mobile-price.com/</loc>
-    <lastmod>${new Date().toISOString()}</lastmod>
-    <priority>1.0</priority>
-  </url>
-</urlset>`;
-}
+[[redirects]]
+  from = "/api/*"
+  to = "/.netlify/functions/api/:splat"
+  status = 200
 
-// Generate robots.txt
-function generateRobotsTxt() {
-  return `User-agent: *
-Allow: /
-Sitemap: https://mobile-price.com/sitemap.xml`;
-}
+[[redirects]]
+  from = "/sitemap.xml"
+  to = "/.netlify/functions/api/sitemap.xml"
+  status = 200
 
-export async function handler(event) {
-  try {
-    // 🔹 Handle sitemap.xml
-    if (event.path.endsWith("/sitemap") || event.path.endsWith("/sitemap.xml")) {
-      return {
-        statusCode: 200,
-        headers: { "Content-Type": "application/xml" },
-        body: generateSitemapXml(),
-      };
-    }
+[[redirects]]
+  from = "/robots.txt"
+  to = "/.netlify/functions/api/robots.txt"
+  status = 200
 
-    // 🔹 Handle robots.txt
-    if (event.path.endsWith("/robots") || event.path.endsWith("/robots.txt")) {
-      return {
-        statusCode: 200,
-        headers: { "Content-Type": "text/plain" },
-        body: generateRobotsTxt(),
-      };
-    }
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
 
-    // 🔹 Example: regular API endpoint (/api/mobiles)
-    if (event.path.endsWith("/mobiles")) {
-      const result = await pool.query("SELECT * FROM mobiles LIMIT 50");
-      return {
-        statusCode: 200,
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(result.rows),
-      };
-    }
+[functions]
+  node_bundler = "esbuild"
 
-    // 🔹 Default response
-    return {
-      statusCode: 404,
-      body: JSON.stringify({ error: "Not Found", path: event.path }),
-    };
-  } catch (err) {
-    return {
-      statusCode: 500,
-      body: JSON.stringify({ error: err.message }),
-    };
-  }
-}
+[[headers]]
+  for = "/api/*"
+  [headers.values]
+    Access-Control-Allow-Origin = "*"
+    Access-Control-Allow-Headers = "Content-Type"
+    Access-Control-Allow-Methods = "GET, POST, PUT, DELETE, OPTIONS"

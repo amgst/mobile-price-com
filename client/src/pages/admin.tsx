@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { Button } from "@/components/ui/button";
@@ -25,6 +25,19 @@ export default function Admin() {
   const [itemsPerPage] = useState(12);
   const queryClient = useQueryClient();
   const { toast } = useToast();
+
+  // Check for edit parameter in URL
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const editId = params.get('edit');
+    if (editId && mobiles) {
+      const mobileToEdit = mobiles.find(m => m.id === editId);
+      if (mobileToEdit) {
+        setSelectedMobile(mobileToEdit);
+        setShowMobileForm(true);
+      }
+    }
+  }, [mobiles]);
 
   const { data: mobiles = [], isLoading: mobilesLoading } = useQuery<Mobile[]>({
     queryKey: ["/api/mobiles"],

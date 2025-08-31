@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { Button } from "@/components/ui/button";
@@ -6,7 +6,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { SafeImage } from "@/components/ui/safe-image";
-import { Plus, Edit, Trash2, Eye, Download } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Plus, Edit, Trash2, Eye, Download, Search } from "lucide-react";
 import { Link } from "wouter";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
@@ -23,6 +24,7 @@ export default function Admin() {
   const [showMobileDetails, setShowMobileDetails] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(12);
+  const [searchQuery, setSearchQuery] = useState("");
   const queryClient = useQueryClient();
   const { toast } = useToast();
 
@@ -42,6 +44,17 @@ export default function Admin() {
   const { data: mobiles = [], isLoading: mobilesLoading } = useQuery<Mobile[]>({
     queryKey: ["/api/mobiles"],
   });
+
+  const filteredMobiles = useMemo(() => {
+    if (!searchQuery.trim()) return mobiles;
+    
+    const query = searchQuery.toLowerCase();
+    return mobiles.filter(mobile => 
+      mobile.name.toLowerCase().includes(query) ||
+      mobile.brand.toLowerCase().includes(query) ||
+      mobile.model.toLowerCase().includes(query)
+    );
+  }, [mobiles, searchQuery]);
 
   const { data: brands = [], isLoading: brandsLoading } = useQuery<Brand[]>({
     queryKey: ["/api/brands"],
@@ -173,6 +186,17 @@ export default function Admin() {
                 Add Mobile
               </Button>
             </div>
+            
+            <div className="relative max-w-md">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+              <Input
+                type="text"
+                placeholder="Search mobiles by name, brand, or model..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-10"
+              />
+            </div>
 
             {mobilesLoading ? (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -195,10 +219,11 @@ export default function Admin() {
             ) : (
               <>
                 <div className="mb-4 text-sm text-gray-600">
-                  Showing {Math.min((currentPage - 1) * itemsPerPage + 1, mobiles.length)} - {Math.min(currentPage * itemsPerPage, mobiles.length)} of {mobiles.length} mobiles
+                  Showing {Math.min((currentPage - 1) * itemsPerPage + 1, filteredMobiles.length)} - {Math.min(currentPage * itemsPerPage, filteredMobiles.length)} of {filteredMobiles.length} mobiles
+                  {searchQuery && ` (filtered from ${mobiles.length} total)`}
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {mobiles.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage).map((mobile) => (
+                  {filteredMobiles.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage).map((mobile) => (
                     <Card key={mobile.id} className="hover:shadow-lg transition-shadow">
                       <CardHeader>
                         <CardTitle className="text-lg">{mobile.name}</CardTitle>
@@ -255,24 +280,24 @@ export default function Admin() {
                     </Card>
                   ))}
                 </div>
-                {Math.ceil(mobiles.length / itemsPerPage) > 1 && (
+                {Math.ceil(filteredMobiles.length / itemsPerPage) > 1 && (
                   <div className="flex justify-center mt-6 gap-2">
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                      onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
                       disabled={currentPage === 1}
                     >
                       Previous
                     </Button>
                     <span className="flex items-center px-3 text-sm">
-                      Page {currentPage} of {Math.ceil(mobiles.length / itemsPerPage)}
+                      Page {currentPage} of {Math.ceil(filteredMobiles.length / itemsPerPage)}
                     </span>
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={() => setCurrentPage(p => Math.min(Math.ceil(mobiles.length / itemsPerPage), p + 1))}
-                      disabled={currentPage === Math.ceil(mobiles.length / itemsPerPage)}
+                      onClick={() => setCurrentPage(prev => Math.min(Math.ceil(filteredMobiles.length / itemsPerPage), prev + 1))}
+                      disabled={currentPage === Math.ceil(filteredMobiles.length / itemsPerPage)}
                     >
                       Next
                     </Button>

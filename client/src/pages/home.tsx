@@ -24,6 +24,12 @@ export default function Home() {
 
   const stats = useStats();
 
+  const getPrice = (mobile: Mobile) => {
+    const price = mobile.price;
+    if (typeof price === 'string') return parseInt(price.replace(/[^0-9]/g, '')) || 0;
+    return price || 0;
+  };
+
   const filteredMobiles = allMobiles?.filter(mobile => {
     if (filter === 'budget') {
       const price = getPrice(mobile);
@@ -32,12 +38,6 @@ export default function Home() {
     if (filter === 'popular') return mobile.isFeatured;
     return true; // latest - show all
   }).slice(0, 8) || [];
-
-  const getPrice = (mobile: Mobile) => {
-    const price = mobile.price;
-    if (typeof price === 'string') return parseInt(price.replace(/[^0-9]/g, '')) || 0;
-    return price || 0;
-  };
 
   const budgetCount = allMobiles?.filter(m => {
     const price = getPrice(m);
@@ -204,7 +204,7 @@ export default function Home() {
                 ))}
               </div>
             ) : (
-              {filteredMobiles.length > 0 ? (
+              filteredMobiles.length > 0 ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                   {filteredMobiles.map((mobile) => (
                     <MobileCard key={mobile.id} mobile={mobile} />
@@ -219,7 +219,7 @@ export default function Home() {
                     Try selecting a different category or check back later for new additions.
                   </p>
                 </div>
-              )}
+              )
             )}
 
             <div className="text-center mt-8">

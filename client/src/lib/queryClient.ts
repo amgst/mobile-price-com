@@ -11,6 +11,17 @@ export async function apiRequest(
   url: string,
   options?: RequestInit
 ): Promise<Response> {
+  const baseUrl = getApiBaseUrl();
+  
+  // Transform URL for different environments
+  if (url.startsWith('/api')) {
+    if (window.location.hostname === 'localhost') {
+      url = url.replace('/api', baseUrl + '/api');
+    } else {
+      url = url.replace('/api', baseUrl);
+    }
+  }
+  
   const res = await fetch(url, {
     credentials: "include",
     ...options,
@@ -24,11 +35,10 @@ type UnauthorizedBehavior = "returnNull" | "throw";
 // Determine the correct API base URL based on environment
 const getApiBaseUrl = () => {
   if (window.location.hostname === 'localhost') {
-    return 'http://localhost:5000/api';
+    return 'http://localhost:5000';
   }
-  return '/.netlify/functions/api'; // works for both netlify.app and custom domain
+  return '/.netlify/functions/api';
 };
-
 
 export const getQueryFn: <T>(options: {
   on401: UnauthorizedBehavior;
@@ -38,9 +48,13 @@ export const getQueryFn: <T>(options: {
     const baseUrl = getApiBaseUrl();
     let url = queryKey.join("/");
     
-    // Replace /api with the correct base URL, preserving query parameters
+    // Replace /api with the correct base URL
     if (url.startsWith('/api')) {
-      url = url.replace('/api', baseUrl);
+      if (window.location.hostname === 'localhost') {
+        url = url.replace('/api', baseUrl + '/api');
+      } else {
+        url = url.replace('/api', baseUrl);
+      }
     }
     
     const res = await fetch(url, {

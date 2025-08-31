@@ -204,11 +204,22 @@ export default function Home() {
                 ))}
               </div>
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                {filteredMobiles.map((mobile) => (
-                  <MobileCard key={mobile.id} mobile={mobile} />
-                ))}
-              </div>
+              {filteredMobiles.length > 0 ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                  {filteredMobiles.map((mobile) => (
+                    <MobileCard key={mobile.id} mobile={mobile} />
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-12">
+                  <p className="text-gray-500 text-lg mb-2">
+                    No mobiles found in the {filter === 'budget' ? 'budget' : filter === 'popular' ? 'popular' : 'selected'} category
+                  </p>
+                  <p className="text-gray-600">
+                    Try selecting a different category or check back later for new additions.
+                  </p>
+                </div>
+              )}
             )}
 
             <div className="text-center mt-8">

@@ -34,6 +34,14 @@ export default function Brands() {
             <p className="text-lg text-gray-600">
               Explore all smartphone manufacturers and their latest mobile phone models available in Pakistan.
             </p>
+            {brands && (
+              <p className="text-sm text-gray-500 mt-2">
+                Showing {brands.filter(brand => 
+                  brand.isVisible !== false && 
+                  parseInt(brand.phoneCount || '0') > 0
+                ).length} brands with available phones
+              </p>
+            )}
           </div>
 
           {isLoading ? (
@@ -51,7 +59,10 @@ export default function Brands() {
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-              {brands?.map((brand) => (
+              {brands?.filter(brand => 
+                brand.isVisible !== false && 
+                parseInt(brand.phoneCount || '0') > 0
+              ).map((brand) => (
                 <a
                   key={brand.id}
                   href={`/${brand.slug}`}

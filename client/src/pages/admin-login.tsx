@@ -91,8 +91,8 @@ export default function AdminLogin() {
   return (
     <>
       <SEOHead 
-        title="Admin Login - MobilePrices.pk"
-        description="Secure admin login for MobilePrices.pk management panel"
+        title="Admin Login - Mobile Price"
+        description="Secure admin login for Mobile Price management panel"
         canonical="/admin/login"
         noIndex={true}
       />
@@ -105,7 +105,7 @@ export default function AdminLogin() {
               Admin Login
             </h2>
             <p className="mt-2 text-sm text-gray-600">
-              Sign in to access the MobilePrices.pk admin panel
+              Sign in to access the Mobile Price admin panel
             </p>
           </div>
 

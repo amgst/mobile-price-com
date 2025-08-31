@@ -21,6 +21,8 @@ export default function Admin() {
   const [showMobileForm, setShowMobileForm] = useState(false);
   const [showBrandForm, setShowBrandForm] = useState(false);
   const [showMobileDetails, setShowMobileDetails] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage] = useState(12);
   const queryClient = useQueryClient();
   const { toast } = useToast();
 
@@ -118,9 +120,11 @@ export default function Admin() {
       <div className="container mx-auto px-4 py-8">
         <div className="mb-8 flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
-              Mobile Admin Panel
-            </h1>
+            <Link href="/admin">
+              <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2 hover:text-primary cursor-pointer">
+                Mobile Price Admin
+              </h1>
+            </Link>
             <p className="text-gray-600 dark:text-gray-400">
               Manage mobile phones and brands for your comparison website
             </p>
@@ -176,64 +180,92 @@ export default function Admin() {
                 ))}
               </div>
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {mobiles.map((mobile) => (
-                  <Card key={mobile.id} className="hover:shadow-lg transition-shadow">
-                    <CardHeader>
-                      <CardTitle className="text-lg">{mobile.name}</CardTitle>
-                      <Badge variant="outline" className="w-fit">
-                        {mobile.brand}
-                      </Badge>
-                    </CardHeader>
-                    <CardContent>
-                      <SafeImage
-                        src={mobile.imageUrl}
-                        alt={mobile.name}
-                        className="w-full h-32 object-cover rounded-md mb-4"
-                        loading="lazy"
-                      />
-                      <div className="space-y-2 mb-4">
-                        <p className="text-sm text-gray-600 dark:text-gray-400">
-                          <strong>RAM:</strong> {mobile.shortSpecs.ram}
-                        </p>
-                        <p className="text-sm text-gray-600 dark:text-gray-400">
-                          <strong>Storage:</strong> {mobile.shortSpecs.storage}
-                        </p>
-                        <p className="text-sm text-gray-600 dark:text-gray-400">
-                          <strong>Price:</strong> {mobile.price || "Not set"}
-                        </p>
-                      </div>
-                      <div className="flex gap-2">
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => handleViewMobile(mobile)}
-                          data-testid={`button-view-mobile-${mobile.id}`}
-                        >
-                          <Eye className="w-4 h-4" />
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => handleEditMobile(mobile)}
-                          data-testid={`button-edit-mobile-${mobile.id}`}
-                        >
-                          <Edit className="w-4 h-4" />
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="destructive"
-                          onClick={() => handleDeleteMobile(mobile)}
-                          disabled={deleteMobileMutation.isPending}
-                          data-testid={`button-delete-mobile-${mobile.id}`}
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </Button>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
+              <>
+                <div className="mb-4 text-sm text-gray-600">
+                  Showing {Math.min((currentPage - 1) * itemsPerPage + 1, mobiles.length)} - {Math.min(currentPage * itemsPerPage, mobiles.length)} of {mobiles.length} mobiles
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {mobiles.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage).map((mobile) => (
+                    <Card key={mobile.id} className="hover:shadow-lg transition-shadow">
+                      <CardHeader>
+                        <CardTitle className="text-lg">{mobile.name}</CardTitle>
+                        <Badge variant="outline" className="w-fit">
+                          {mobile.brand}
+                        </Badge>
+                      </CardHeader>
+                      <CardContent>
+                        <SafeImage
+                          src={mobile.imageUrl}
+                          alt={mobile.name}
+                          className="w-full h-32 object-cover rounded-md mb-4"
+                          loading="lazy"
+                        />
+                        <div className="space-y-2 mb-4">
+                          <p className="text-sm text-gray-600 dark:text-gray-400">
+                            <strong>RAM:</strong> {mobile.shortSpecs.ram}
+                          </p>
+                          <p className="text-sm text-gray-600 dark:text-gray-400">
+                            <strong>Storage:</strong> {mobile.shortSpecs.storage}
+                          </p>
+                          <p className="text-sm text-gray-600 dark:text-gray-400">
+                            <strong>Price:</strong> {mobile.price || "Not set"}
+                          </p>
+                        </div>
+                        <div className="flex gap-2">
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => handleViewMobile(mobile)}
+                            data-testid={`button-view-mobile-${mobile.id}`}
+                          >
+                            <Eye className="w-4 h-4" />
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => handleEditMobile(mobile)}
+                            data-testid={`button-edit-mobile-${mobile.id}`}
+                          >
+                            <Edit className="w-4 h-4" />
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="destructive"
+                            onClick={() => handleDeleteMobile(mobile)}
+                            disabled={deleteMobileMutation.isPending}
+                            data-testid={`button-delete-mobile-${mobile.id}`}
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+                {Math.ceil(mobiles.length / itemsPerPage) > 1 && (
+                  <div className="flex justify-center mt-6 gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                      disabled={currentPage === 1}
+                    >
+                      Previous
+                    </Button>
+                    <span className="flex items-center px-3 text-sm">
+                      Page {currentPage} of {Math.ceil(mobiles.length / itemsPerPage)}
+                    </span>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setCurrentPage(p => Math.min(Math.ceil(mobiles.length / itemsPerPage), p + 1))}
+                      disabled={currentPage === Math.ceil(mobiles.length / itemsPerPage)}
+                    >
+                      Next
+                    </Button>
+                  </div>
+                )}
+              </>
             )}
           </TabsContent>
 

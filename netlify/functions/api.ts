@@ -267,6 +267,28 @@ Crawl-delay: 1`;
       return response(200, { success: true, message: 'Logged out successfully' }, expiredCookie);
     }
 
+    // Admin routes (require authentication)
+    const token = extractTokenFromCookies(event.headers.cookie);
+    const isAuthenticated = token && verifyToken(token);
+
+    if (path.startsWith('/admin/') && !isAuthenticated) {
+      return response(401, { message: 'Unauthorized' });
+    }
+
+    // Delete mobile
+    if (path.startsWith('/admin/mobiles/') && method === 'DELETE') {
+      const mobileId = path.split('/')[3];
+      await db.delete(mobiles).where(eq(mobiles.id, mobileId));
+      return response(204, null);
+    }
+
+    // Delete brand
+    if (path.startsWith('/admin/brands/') && method === 'DELETE') {
+      const brandId = path.split('/')[3];
+      await db.delete(brands).where(eq(brands.id, brandId));
+      return response(204, null);
+    }
+
     // Default route - API information
     if (path === '' || path === '/') {
       return response(200, {

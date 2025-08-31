@@ -7,6 +7,7 @@ import { HelmetProvider } from "react-helmet-async";
 import { CompareProvider } from "@/hooks/use-compare";
 import NotFound from "@/pages/not-found";
 import Home from "@/pages/home";
+import Mobiles from "@/pages/mobiles";
 import Brands from "@/pages/brands";
 import BrandCategory from "@/pages/brand-category";
 import MobileDetail from "@/pages/mobile-detail";
@@ -26,6 +27,7 @@ function Router() {
   return (
     <Switch>
       <Route path="/" component={Home} />
+      <Route path="/mobiles" component={Mobiles} />
       <Route path="/brands" component={Brands} />
       <Route path="/search" component={Search} />
       <Route path="/compare" component={Compare} />

@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
+  <defs>
+    <linearGradient id="mobileBg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#059669;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#047857;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="630" fill="url(#mobileBg)"/>
+  <g transform="translate(600,315)">
+    <!-- Large Phone Icon -->
+    <rect x="-80" y="-120" width="160" height="240" rx="25" fill="white" opacity="0.95"/>
+    <rect x="-65" y="-95" width="130" height="190" rx="15" fill="#1f2937"/>
+    <circle cx="0" cy="85" r="18" fill="white"/>
+    <rect x="-25" y="-85" width="50" height="5" rx="2.5" fill="#6b7280"/>
+    
+    <!-- Screen Content -->
+    <rect x="-55" y="-75" width="110" height="8" rx="4" fill="#3b82f6"/>
+    <rect x="-55" y="-55" width="80" height="6" rx="3" fill="#6b7280"/>
+    <rect x="-55" y="-40" width="90" height="6" rx="3" fill="#6b7280"/>
+    <rect x="-55" y="-25" width="70" height="6" rx="3" fill="#6b7280"/>
+    
+    <!-- Price Tag -->
+    <rect x="-35" y="0" width="70" height="25" rx="12" fill="#10b981"/>
+    <text x="0" y="17" text-anchor="middle" font-family="Arial, sans-serif" font-size="14" font-weight="bold" fill="white">
+      Best Price
+    </text>
+    
+    <!-- Main Text -->
+    <text x="0" y="170" text-anchor="middle" font-family="Arial, sans-serif" font-size="42" font-weight="bold" fill="white">
+      Mobile Specifications
+    </text>
+    <text x="0" y="210" text-anchor="middle" font-family="Arial, sans-serif" font-size="28" fill="white" opacity="0.9">
+      Complete Reviews & Prices
+    </text>
+    <text x="0" y="245" text-anchor="middle" font-family="Arial, sans-serif" font-size="20" fill="white" opacity="0.8">
+      MobilePrices.pk
+    </text>
+  </g>
+</svg>

@@ -1,0 +1,20 @@
+User-agent: *
+Allow: /
+
+# Sitemaps
+Sitemap: https://mobile-price.com/sitemap.xml
+Sitemap: https://mobile-price.com/sitemap-index.xml
+
+# Block admin and API routes
+Disallow: /admin/
+Disallow: /api/
+
+# Allow all search engines to crawl
+User-agent: Googlebot
+Allow: /
+
+User-agent: Bingbot
+Allow: /
+
+# Crawl-delay for polite crawling
+Crawl-delay: 1

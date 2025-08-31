@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useMemo } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { Button } from "@/components/ui/button";
@@ -28,18 +28,7 @@ export default function Admin() {
   const queryClient = useQueryClient();
   const { toast } = useToast();
 
-  // Check for edit parameter in URL
-  useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const editId = params.get('edit');
-    if (editId && mobiles && mobiles.length > 0) {
-      const mobileToEdit = mobiles.find(m => m.id === editId);
-      if (mobileToEdit) {
-        setSelectedMobile(mobileToEdit);
-        setShowMobileForm(true);
-      }
-    }
-  }, [mobiles]);
+
 
   const { data: mobiles = [], isLoading: mobilesLoading } = useQuery<Mobile[]>({
     queryKey: ["/api/mobiles"],
@@ -289,7 +278,7 @@ export default function Admin() {
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                      onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
                       disabled={currentPage === 1}
                     >
                       Previous
@@ -300,7 +289,7 @@ export default function Admin() {
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={() => setCurrentPage(prev => Math.min(Math.ceil(filteredMobiles.length / itemsPerPage), prev + 1))}
+                      onClick={() => setCurrentPage(Math.min(Math.ceil(filteredMobiles.length / itemsPerPage), currentPage + 1))}
                       disabled={currentPage === Math.ceil(filteredMobiles.length / itemsPerPage)}
                     >
                       Next

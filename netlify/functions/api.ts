@@ -39,7 +39,7 @@ const createDbConnection = () => {
 const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key-change-in-production';
 
 // Response helper
-const response = (statusCode: number, body: any, cookies?: string[]) => ({
+const response = (statusCode: number, body: any, cookie?: string) => ({
   statusCode,
   headers: {
     'Content-Type': 'application/json',
@@ -47,7 +47,7 @@ const response = (statusCode: number, body: any, cookies?: string[]) => ({
     'Access-Control-Allow-Headers': 'Content-Type, Authorization, Cookie',
     'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
     'Access-Control-Allow-Credentials': 'true',
-    ...(cookies && { 'Set-Cookie': cookies }),
+    ...(cookie && { 'Set-Cookie': cookie }),
   },
   body: JSON.stringify(body),
 });
@@ -255,7 +255,7 @@ Crawl-delay: 1`;
           success: true, 
           message: 'Login successful',
           redirectTo: '/admin'
-        }, [cookie]);
+        }, cookie);
       }
       
       return response(401, { success: false, message: 'Invalid credentials' });
@@ -264,7 +264,7 @@ Crawl-delay: 1`;
     if (path === '/auth/logout' && method === 'POST') {
       const isProduction = event.headers.host?.includes('netlify.app') || event.headers.host?.includes('mobile-price.com');
       const expiredCookie = `auth-token=; HttpOnly; ${isProduction ? 'Secure;' : ''} SameSite=Strict; Max-Age=0; Path=/`;
-      return response(200, { success: true, message: 'Logged out successfully' }, [expiredCookie]);
+      return response(200, { success: true, message: 'Logged out successfully' }, expiredCookie);
     }
 
     // Default route - API information

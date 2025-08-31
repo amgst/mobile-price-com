@@ -12,6 +12,8 @@ import type { Mobile } from "@shared/schema";
 export default function Mobiles() {
   const [, setLocation] = useLocation();
   const [filter, setFilter] = useState<'all' | 'budget' | 'midrange' | 'flagship'>('all');
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage] = useState(20);
 
   const { data: mobiles, isLoading } = useQuery<Mobile[]>({
     queryKey: ["/api/mobiles"],
@@ -20,17 +22,37 @@ export default function Mobiles() {
   const filteredMobiles = useMemo(() => {
     if (!mobiles) return [];
     
+    const getPrice = (mobile: Mobile) => {
+      const price = mobile.price;
+      if (typeof price === 'string') return parseInt(price.replace(/[^0-9]/g, '')) || 0;
+      return price || 0;
+    };
+    
     switch (filter) {
       case 'budget':
-        return mobiles.filter(m => (m.price || 0) < 50000);
+        return mobiles.filter(m => {
+          const price = getPrice(m);
+          return price > 0 && price < 50000;
+        });
       case 'midrange':
-        return mobiles.filter(m => (m.price || 0) >= 50000 && (m.price || 0) <= 150000);
+        return mobiles.filter(m => {
+          const price = getPrice(m);
+          return price >= 50000 && price <= 150000;
+        });
       case 'flagship':
-        return mobiles.filter(m => (m.price || 0) > 150000);
+        return mobiles.filter(m => {
+          const price = getPrice(m);
+          return price > 150000;
+        });
       default:
         return mobiles;
     }
   }, [mobiles, filter]);
+
+  // Reset to page 1 when filter changes
+  useState(() => {
+    setCurrentPage(1);
+  }, [filter]);
 
   const breadcrumbs = [
     { label: "Home", href: "/" },
@@ -103,13 +125,34 @@ export default function Mobiles() {
           ) : (
             <>
               <div className="mb-4 text-sm text-gray-600">
-                Showing {filteredMobiles.length} mobile phones
+                Showing {Math.min((currentPage - 1) * itemsPerPage + 1, filteredMobiles.length)} - {Math.min(currentPage * itemsPerPage, filteredMobiles.length)} of {filteredMobiles.length} mobile phones
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                {filteredMobiles.map((mobile) => (
+                {filteredMobiles.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage).map((mobile) => (
                   <MobileCard key={mobile.id} mobile={mobile} />
                 ))}
               </div>
+              {Math.ceil(filteredMobiles.length / itemsPerPage) > 1 && (
+                <div className="flex justify-center mt-8 gap-2">
+                  <Button
+                    variant="outline"
+                    onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                    disabled={currentPage === 1}
+                  >
+                    Previous
+                  </Button>
+                  <span className="flex items-center px-4 text-sm">
+                    Page {currentPage} of {Math.ceil(filteredMobiles.length / itemsPerPage)}
+                  </span>
+                  <Button
+                    variant="outline"
+                    onClick={() => setCurrentPage(p => Math.min(Math.ceil(filteredMobiles.length / itemsPerPage), p + 1))}
+                    disabled={currentPage === Math.ceil(filteredMobiles.length / itemsPerPage)}
+                  >
+                    Next
+                  </Button>
+                </div>
+              )}
             </>
           )}
         </main>

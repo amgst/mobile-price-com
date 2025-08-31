@@ -25,7 +25,7 @@ export default function Search() {
   }, [location]);
 
   const { data: searchResults, isLoading } = useQuery<Mobile[]>({
-    queryKey: ["/api/search", `q=${encodeURIComponent(currentQuery)}`],
+    queryKey: [`/api/search?q=${encodeURIComponent(currentQuery)}`],
     enabled: currentQuery.length > 0,
   });
 

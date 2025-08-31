@@ -32,7 +32,7 @@ export default function Admin() {
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const editId = params.get('edit');
-    if (editId && mobiles) {
+    if (editId && mobiles && mobiles.length > 0) {
       const mobileToEdit = mobiles.find(m => m.id === editId);
       if (mobileToEdit) {
         setSelectedMobile(mobileToEdit);
@@ -50,9 +50,9 @@ export default function Admin() {
     
     const query = searchQuery.toLowerCase();
     return mobiles.filter(mobile => 
-      mobile.name.toLowerCase().includes(query) ||
-      mobile.brand.toLowerCase().includes(query) ||
-      mobile.model.toLowerCase().includes(query)
+      mobile.name?.toLowerCase().includes(query) ||
+      mobile.brand?.toLowerCase().includes(query) ||
+      mobile.model?.toLowerCase().includes(query)
     );
   }, [mobiles, searchQuery]);
 
@@ -219,8 +219,12 @@ export default function Admin() {
             ) : (
               <>
                 <div className="mb-4 text-sm text-gray-600">
-                  Showing {Math.min((currentPage - 1) * itemsPerPage + 1, filteredMobiles.length)} - {Math.min(currentPage * itemsPerPage, filteredMobiles.length)} of {filteredMobiles.length} mobiles
-                  {searchQuery && ` (filtered from ${mobiles.length} total)`}
+                  {filteredMobiles.length > 0 ? (
+                    <>Showing {Math.min((currentPage - 1) * itemsPerPage + 1, filteredMobiles.length)} - {Math.min(currentPage * itemsPerPage, filteredMobiles.length)} of {filteredMobiles.length} mobiles
+                    {searchQuery && ` (filtered from ${mobiles.length} total)`}</>
+                  ) : (
+                    searchQuery ? `No mobiles found matching "${searchQuery}"` : 'No mobiles available'
+                  )}
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                   {filteredMobiles.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage).map((mobile) => (

@@ -7,23 +7,25 @@ import { Card, CardContent } from "@/components/ui/card";
 import type { Brand, Mobile } from "@shared/schema";
 
 export default function Brands() {
-  const { data: brands, isLoading } = useQuery<Brand[]>({
+  const { data: brands, isLoading: brandsLoading } = useQuery<Brand[]>({
     queryKey: ["/api/brands"],
   });
 
-  const { data: mobiles } = useQuery<Mobile[]>({
+  const { data: mobiles, isLoading: mobilesLoading } = useQuery<Mobile[]>({
     queryKey: ["/api/mobiles"],
   });
 
+  const isLoading = brandsLoading || mobilesLoading;
+
   // Calculate actual mobile count for each brand
-  const brandsWithCounts = brands?.map(brand => {
-    const mobileCount = mobiles?.filter(mobile => 
+  const brandsWithCounts = (brands && mobiles) ? brands.map(brand => {
+    const mobileCount = mobiles.filter(mobile => 
       mobile.brand.toLowerCase() === brand.name.toLowerCase()
-    ).length || 0;
+    ).length;
     return { ...brand, actualMobileCount: mobileCount };
   }).filter(brand => 
     brand.isVisible !== false && brand.actualMobileCount > 0
-  ) || [];
+  ) : [];
 
   const breadcrumbs = [
     { label: "Home", href: "/" },

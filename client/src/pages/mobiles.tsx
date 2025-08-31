@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useLocation } from "wouter";
 import { Header } from "@/components/layout/header";
@@ -50,7 +50,7 @@ export default function Mobiles() {
   }, [mobiles, filter]);
 
   // Reset to page 1 when filter changes
-  useState(() => {
+  useEffect(() => {
     setCurrentPage(1);
   }, [filter]);
 

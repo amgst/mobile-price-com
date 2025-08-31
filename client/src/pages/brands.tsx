@@ -4,12 +4,26 @@ import { Footer } from "@/components/layout/footer";
 import { Breadcrumbs } from "@/components/layout/breadcrumbs";
 import { SEOHead } from "@/components/seo/seo-head";
 import { Card, CardContent } from "@/components/ui/card";
-import type { Brand } from "@shared/schema";
+import type { Brand, Mobile } from "@shared/schema";
 
 export default function Brands() {
   const { data: brands, isLoading } = useQuery<Brand[]>({
     queryKey: ["/api/brands"],
   });
+
+  const { data: mobiles } = useQuery<Mobile[]>({
+    queryKey: ["/api/mobiles"],
+  });
+
+  // Calculate actual mobile count for each brand
+  const brandsWithCounts = brands?.map(brand => {
+    const mobileCount = mobiles?.filter(mobile => 
+      mobile.brand.toLowerCase() === brand.name.toLowerCase()
+    ).length || 0;
+    return { ...brand, actualMobileCount: mobileCount };
+  }).filter(brand => 
+    brand.isVisible !== false && brand.actualMobileCount > 0
+  ) || [];
 
   const breadcrumbs = [
     { label: "Home", href: "/" },
@@ -34,14 +48,9 @@ export default function Brands() {
             <p className="text-lg text-gray-600">
               Explore all smartphone manufacturers and their latest mobile phone models available in Pakistan.
             </p>
-            {brands && (
-              <p className="text-sm text-gray-500 mt-2">
-                Showing {brands.filter(brand => 
-                  brand.isVisible !== false && 
-                  parseInt(brand.phoneCount || '0') > 0
-                ).length} brands with available phones
-              </p>
-            )}
+            <p className="text-sm text-gray-500 mt-2">
+              Showing {brandsWithCounts.length} brands with available phones
+            </p>
           </div>
 
           {isLoading ? (
@@ -59,10 +68,7 @@ export default function Brands() {
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-              {brands?.filter(brand => 
-                brand.isVisible !== false && 
-                parseInt(brand.phoneCount || '0') > 0
-              ).map((brand) => (
+              {brandsWithCounts.map((brand) => (
                 <a
                   key={brand.id}
                   href={`/${brand.slug}`}
@@ -74,7 +80,7 @@ export default function Brands() {
                         <span className="text-2xl font-bold text-gray-600">{brand.logo}</span>
                       </div>
                       <h2 className="text-xl font-semibold text-gray-900 mb-2">{brand.name}</h2>
-                      <p className="text-primary font-medium mb-3">{brand.phoneCount} phones available</p>
+                      <p className="text-primary font-medium mb-3">{brand.actualMobileCount} phones available</p>
                       {brand.description && (
                         <p className="text-sm text-gray-600">{brand.description}</p>
                       )}

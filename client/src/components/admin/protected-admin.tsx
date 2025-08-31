@@ -69,7 +69,7 @@ export function ProtectedAdmin({ children }: ProtectedAdminProps) {
             <div className="flex items-center gap-4">
               <Shield className="w-6 h-6 text-blue-600" />
               <h1 className="text-lg font-semibold text-gray-900">
-                MobilePrices.pk Admin
+                MobilePrice Admin
               </h1>
             </div>
             

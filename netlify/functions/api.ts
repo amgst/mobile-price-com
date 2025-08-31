@@ -275,6 +275,28 @@ Crawl-delay: 1`;
       return response(401, { message: 'Unauthorized' });
     }
 
+    // Update mobile
+    if (path.startsWith('/admin/mobiles/') && method === 'PUT') {
+      const mobileId = path.split('/')[3];
+      const body = JSON.parse(event.body || '{}');
+      const updatedMobile = await db.update(mobiles)
+        .set(body)
+        .where(eq(mobiles.id, mobileId))
+        .returning();
+      return response(200, updatedMobile[0]);
+    }
+
+    // Update brand
+    if (path.startsWith('/admin/brands/') && method === 'PUT') {
+      const brandId = path.split('/')[3];
+      const body = JSON.parse(event.body || '{}');
+      const updatedBrand = await db.update(brands)
+        .set(body)
+        .where(eq(brands.id, brandId))
+        .returning();
+      return response(200, updatedBrand[0]);
+    }
+
     // Delete mobile
     if (path.startsWith('/admin/mobiles/') && method === 'DELETE') {
       const mobileId = path.split('/')[3];

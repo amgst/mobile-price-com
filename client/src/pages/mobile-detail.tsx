@@ -12,10 +12,14 @@ import { MobileHero } from "@/components/mobile/mobile-hero";
 import { SpecsTable } from "@/components/mobile/specs-table";
 import { ImageGallery } from "@/components/mobile/image-gallery";
 import { MobileCard } from "@/components/mobile/mobile-card";
+import { Button } from "@/components/ui/button";
+import { useAuth } from "@/hooks/use-auth";
+import { Edit } from "lucide-react";
 import type { Mobile } from "@shared/schema";
 
 export default function MobileDetail() {
   const { brand: brandSlug, model: mobileSlug } = useParams<{ brand: string; model: string }>();
+  const { isAuthenticated } = useAuth();
 
   const { data: mobile, isLoading } = useQuery<Mobile>({
     queryKey: ["/api/mobiles", brandSlug, mobileSlug],
@@ -98,6 +102,20 @@ export default function MobileDetail() {
         <Breadcrumbs items={breadcrumbs} />
         
         <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          {/* Admin Edit Button */}
+          {isAuthenticated && (
+            <div className="mb-6 flex justify-end">
+              <Button
+                onClick={() => window.location.href = `/admin?edit=${mobile.id}`}
+                variant="outline"
+                size="sm"
+              >
+                <Edit className="w-4 h-4 mr-2" />
+                Edit Mobile
+              </Button>
+            </div>
+          )}
+
           {/* Mobile Hero Section */}
           <MobileHero mobile={mobile} />
 

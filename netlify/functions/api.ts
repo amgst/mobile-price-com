@@ -6,6 +6,7 @@ import * as schema from "../../shared/schema.ts";
 import { eq, like, or, and, sql } from "drizzle-orm";
 import { brands, mobiles, users } from "../../shared/schema.ts";
 import { generateSitemapEntries, generateSitemapXML } from "../../client/src/components/seo/sitemap-generator.js";
+import jwt from 'jsonwebtoken';
 
 // Database connection
 const createDbConnection = () => {
@@ -34,17 +35,39 @@ const createDbConnection = () => {
   return drizzle(pool, { schema });
 };
 
+// JWT secret (in production, use environment variable)
+const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key-change-in-production';
+
 // Response helper
-const response = (statusCode: number, body: any) => ({
+const response = (statusCode: number, body: any, cookies?: string[]) => ({
   statusCode,
   headers: {
     'Content-Type': 'application/json',
     'Access-Control-Allow-Origin': '*',
-    'Access-Control-Allow-Headers': 'Content-Type',
+    'Access-Control-Allow-Headers': 'Content-Type, Authorization, Cookie',
     'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+    'Access-Control-Allow-Credentials': 'true',
+    ...(cookies && { 'Set-Cookie': cookies }),
   },
   body: JSON.stringify(body),
 });
+
+// Helper to extract JWT from cookies
+const extractTokenFromCookies = (cookieHeader: string | undefined): string | null => {
+  if (!cookieHeader) return null;
+  const cookies = cookieHeader.split(';').map(c => c.trim());
+  const authCookie = cookies.find(c => c.startsWith('auth-token='));
+  return authCookie ? authCookie.split('=')[1] : null;
+};
+
+// Helper to verify JWT token
+const verifyToken = (token: string): any => {
+  try {
+    return jwt.verify(token, JWT_SECRET);
+  } catch {
+    return null;
+  }
+};
 
 export const handler: Handler = async (event, context) => {
   console.log('Function invoked:', {
@@ -200,20 +223,48 @@ Crawl-delay: 1`;
       };
     }
 
-    // Auth endpoints (simplified for Netlify)
+    // Auth endpoints with JWT
     if (path === '/auth/status' && method === 'GET') {
+      const token = extractTokenFromCookies(event.headers.cookie);
+      
+      if (token) {
+        const decoded = verifyToken(token);
+        if (decoded) {
+          return response(200, { isAuthenticated: true, username: decoded.username });
+        }
+      }
+      
       return response(200, { isAuthenticated: false, username: null });
     }
 
     if (path === '/auth/login' && method === 'POST') {
       const body = JSON.parse(event.body || '{}');
       
-      // Simple auth for demo (in production, use proper JWT/sessions)
+      // Simple auth for demo (in production, use proper user database)
       if (body.username === 'admin' && body.password === 'admin123') {
-        return response(200, { success: true, message: 'Login successful' });
+        const token = jwt.sign(
+          { username: 'admin', userId: 1 },
+          JWT_SECRET,
+          { expiresIn: '24h' }
+        );
+        
+        const isProduction = event.headers.host?.includes('netlify.app') || event.headers.host?.includes('mobile-price.com');
+        const cookie = `auth-token=${token}; HttpOnly; ${isProduction ? 'Secure;' : ''} SameSite=Strict; Max-Age=86400; Path=/`;
+        
+        return response(200, { 
+          success: true, 
+          message: 'Login successful',
+          redirectTo: '/admin'
+        }, [cookie]);
       }
       
       return response(401, { success: false, message: 'Invalid credentials' });
+    }
+
+    if (path === '/auth/logout' && method === 'POST') {
+      const isProduction = event.headers.host?.includes('netlify.app') || event.headers.host?.includes('mobile-price.com');
+      const expiredCookie = `auth-token=; HttpOnly; ${isProduction ? 'Secure;' : ''} SameSite=Strict; Max-Age=0; Path=/`;
+      return response(200, { success: true, message: 'Logged out successfully' }, [expiredCookie]);
     }
 
     // Default route - API information

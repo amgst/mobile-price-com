@@ -22,6 +22,7 @@ import Guide from "@/pages/guide";
 import Contact from "@/pages/contact";
 import Privacy from "@/pages/privacy";
 import Terms from "@/pages/terms";
+import Sitemap from "@/pages/sitemap";
 
 function Router() {
   return (
@@ -36,6 +37,7 @@ function Router() {
       <Route path="/contact" component={Contact} />
       <Route path="/privacy" component={Privacy} />
       <Route path="/terms" component={Terms} />
+      <Route path="/sitemap" component={Sitemap} />
       <Route path="/admin" component={Admin} />
       <Route path="/admin/import" component={AdminImport} />
       <Route path="/admin/login" component={AdminLogin} />

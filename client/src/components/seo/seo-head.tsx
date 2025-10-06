@@ -17,7 +17,7 @@ export function SEOHead({
   ogImage = "/images/og-default.jpg",
   jsonLd 
 }: SEOHeadProps) {
-  const fullCanonical = `${import.meta.env.VITE_SITE_URL || 'https://mobileprices.pk'}${canonical}`;
+  const fullCanonical = `${import.meta.env.VITE_SITE_URL || 'https://mobile-price.com'}${canonical}`;
   
   return (
     <Helmet>
@@ -33,7 +33,7 @@ export function SEOHead({
       <meta property="og:url" content={fullCanonical} />
       <meta property="og:type" content="website" />
       <meta property="og:image" content={ogImage} />
-      <meta property="og:site_name" content="MobilePrices.pk" />
+      <meta property="og:site_name" content="Mobile Price" />
       
       {/* Twitter Card */}
       <meta name="twitter:card" content="summary_large_image" />

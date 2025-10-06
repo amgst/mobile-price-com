@@ -18,7 +18,7 @@ export function RichMetaTags({ mobile, brand, page = 'home' }: MetaTagsProps) {
   };
 
   const generateAlternateTags = () => {
-    const baseUrl = import.meta.env.VITE_SITE_URL || 'https://mobileprices.pk';
+    const baseUrl = import.meta.env.VITE_SITE_URL || 'https://mobile-price.com';
     return (
       <>
         <link rel="alternate" hrefLang="en" href={`${baseUrl}${mobile ? `/${mobile.brand.toLowerCase()}/${mobile.slug}` : brand ? `/${brand.slug}` : ''}`} />
@@ -33,8 +33,8 @@ export function RichMetaTags({ mobile, brand, page = 'home' }: MetaTagsProps) {
       <meta name="keywords" content={generateKeywords()} />
       
       {/* Author and Publisher */}
-      <meta name="author" content="MobilePrices.pk" />
-      <meta name="publisher" content="MobilePrices.pk" />
+      <meta name="author" content="Mobile Price" />
+      <meta name="publisher" content="Mobile Price" />
       
       {/* Content Information */}
       <meta name="robots" content="index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1" />

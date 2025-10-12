@@ -9,36 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Mail, Phone, MapPin, Clock, MessageCircle, HelpCircle } from "lucide-react";
 
 function ContactPage() {
-  const contactMethods = [
-    {
-      icon: <Mail className="h-6 w-6" />,
-      title: "Email Support",
-      description: "Get detailed responses within 24 hours",
-      contact: "support@mobileprices.pk",
-      action: "mailto:support@mobileprices.pk"
-    },
-    {
-      icon: <Phone className="h-6 w-6" />,
-      title: "Phone Support",
-      description: "Speak directly with our team",
-      contact: "+92-321-1234567",
-      action: "tel:+923211234567"
-    },
-    {
-      icon: <MessageCircle className="h-6 w-6" />,
-      title: "WhatsApp",
-      description: "Quick responses for urgent queries",
-      contact: "+92-321-1234567",
-      action: "https://wa.me/923211234567"
-    },
-    {
-      icon: <MapPin className="h-6 w-6" />,
-      title: "Office Location",
-      description: "Visit us for in-person support",
-      contact: "Lahore, Pakistan",
-      action: "#"
-    }
-  ];
+
 
   const faqCategories = [
     {
@@ -183,30 +154,8 @@ function ContactPage() {
 
           {/* Contact Information */}
           <div className="space-y-6">
-            {/* Contact Methods */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Get in Touch</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                {contactMethods.map((method) => (
-                  <a 
-                    key={method.title}
-                    href={method.action}
-                    className="flex items-start space-x-3 p-3 rounded-lg hover:bg-gray-50 transition-colors"
-                  >
-                    <div className="p-2 bg-primary/10 rounded-lg">
-                      {method.icon}
-                    </div>
-                    <div>
-                      <h3 className="font-semibold text-gray-900">{method.title}</h3>
-                      <p className="text-sm text-gray-600 mb-1">{method.description}</p>
-                      <p className="text-sm font-medium text-primary">{method.contact}</p>
-                    </div>
-                  </a>
-                ))}
-              </CardContent>
-            </Card>
+            
+            
 
             {/* Support Hours */}
             <Card>

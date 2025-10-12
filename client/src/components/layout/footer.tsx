@@ -1,5 +1,5 @@
 import { Link } from "wouter";
-import { Smartphone, Facebook, Twitter, Instagram } from "lucide-react";
+import { Smartphone } from "lucide-react";
 
 export function Footer() {
   const popularBrands = [
@@ -13,7 +13,6 @@ export function Footer() {
   const quickLinks = [
     { name: "Latest Mobiles", href: "/?filter=latest" },
     { name: "Price Comparison", href: "/compare" },
-    { name: "Mobile Reviews", href: "/reviews" },
     { name: "Buying Guide", href: "/guide" },
     { name: "Contact Us", href: "/contact" },
   ];
@@ -39,32 +38,8 @@ export function Footer() {
             <p className="text-gray-400 text-sm mb-4">
               Your trusted mobile phone price comparison website. Find the best deals on smartphones from all major brands with detailed specifications and reviews.
             </p>
-            <div className="flex space-x-4">
-              <a 
-                href="#" 
-                className="text-gray-400 hover:text-white transition-colors"
-                data-testid="social-facebook"
-                aria-label="Facebook"
-              >
-                <Facebook className="h-5 w-5" />
-              </a>
-              <a 
-                href="#" 
-                className="text-gray-400 hover:text-white transition-colors"
-                data-testid="social-twitter"
-                aria-label="Twitter"
-              >
-                <Twitter className="h-5 w-5" />
-              </a>
-              <a 
-                href="#" 
-                className="text-gray-400 hover:text-white transition-colors"
-                data-testid="social-instagram"
-                aria-label="Instagram"
-              >
-                <Instagram className="h-5 w-5" />
-              </a>
-            </div>
+            
+            
           </div>
 
           {/* Popular Brands */}

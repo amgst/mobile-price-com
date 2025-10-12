@@ -268,7 +268,7 @@ export function MobileHero({ mobile }: MobileHeroProps) {
                 </div>
                 {showCameraAnalyzer && (
                   <div className="p-4 border rounded-lg">
-                    <CameraQualityAnalyzer mobile={mobile} />
+                    <CameraQualityAnalyzer mobile={mobile} onClose={() => setShowCameraAnalyzer(false)} />
                   </div>
                 )}
 
@@ -283,7 +283,7 @@ export function MobileHero({ mobile }: MobileHeroProps) {
                 </div>
                 {showScreenAnalyzer && (
                   <div className="p-4 border rounded-lg">
-                    <ScreenQualityAnalyzer mobile={mobile} />
+                    <ScreenQualityAnalyzer mobile={mobile} onClose={() => setShowScreenAnalyzer(false)} />
                   </div>
                 )}
 
@@ -298,7 +298,7 @@ export function MobileHero({ mobile }: MobileHeroProps) {
                 </div>
                 {showDesignFinder && (
                   <div className="p-4 border rounded-lg">
-                    <DesignSimilarityFinder mobile={mobile} />
+                    <DesignSimilarityFinder mobile={mobile} onClose={() => setShowDesignFinder(false)} />
                   </div>
                 )}
 

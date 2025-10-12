@@ -89,7 +89,8 @@ export function MobileHero({ mobile }: MobileHeroProps) {
                 <SafeImage
                   src={prioritizedSources}
                   alt={mobile.name}
-                  className="w-full h-full object-contain rounded-lg"
+                  className="w-full h-full rounded-lg"
+                  objectFit="contain"
                   quality="high"
                   placeholder={ImageUtils.generatePlaceholder(prioritizedSources[0] || mobile.imageUrl)}
                   sizes="(max-width: 1024px) 100vw, 50vw"
@@ -119,7 +120,8 @@ export function MobileHero({ mobile }: MobileHeroProps) {
                       <SafeImage
                         src={image}
                         alt={`${mobile.name} view ${index + 1}`}
-                        className="w-full h-full object-contain rounded"
+                        className="w-full h-full rounded"
+                        objectFit="contain"
                         quality="low"
                         showFallback={false}
                         loading="lazy"

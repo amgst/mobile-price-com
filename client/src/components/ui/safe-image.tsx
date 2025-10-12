@@ -13,6 +13,8 @@ interface SafeImageProps {
   sizes?: string;
   placeholder?: string;
   quality?: "low" | "medium" | "high";
+  objectFit?: "cover" | "contain";
+  imgClassName?: string;
   [key: string]: any;
 }
 
@@ -28,6 +30,8 @@ export function SafeImage({
   sizes,
   placeholder,
   quality = "high",
+  objectFit = "cover",
+  imgClassName,
   ...props 
 }: SafeImageProps) {
   const [currentSrc, setCurrentSrc] = useState<string>("");
@@ -151,9 +155,9 @@ export function SafeImage({
       <img
         src={optimizedSrc}
         alt={alt}
-        className={`w-full h-full object-cover transition-all duration-300 ${
-          isLoading ? 'opacity-0 scale-105' : 'opacity-100 scale-100'
-        }`}
+        className={`w-full h-full transition-all duration-300 ${
+          objectFit === 'contain' ? 'object-contain' : 'object-cover'
+        } ${isLoading ? 'opacity-0 scale-105' : 'opacity-100 scale-100'} ${imgClassName ?? ''}`}
         onLoad={handleLoad}
         onError={handleError}
         loading={loading}

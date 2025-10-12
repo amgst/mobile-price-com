@@ -40,12 +40,22 @@ export function MobileHero({ mobile }: MobileHeroProps) {
   const { addToCompare, isInCompare } = useCompare();
   const inCompare = isInCompare(mobile.id);
 
-  // Create comprehensive image sources for hero display
+  // Create comprehensive image sources for hero display (includes brand fallbacks)
   const allImages = ImageUtils.createImageSources(
     mobile.imageUrl,
     mobile.carouselImages || [],
     mobile.brand
   );
+
+  // Real images provided by the mobile itself (primary + carousel), excluding brand fallbacks
+  const realImages = Array.from(new Set([mobile.imageUrl, ...(mobile.carouselImages || [])].filter(Boolean)));
+
+  // Prioritize the selected real image, then other real images, and finally brand fallbacks for robustness
+  const prioritizedSources = [
+    ...realImages.slice(selectedImage, selectedImage + 1),
+    ...realImages.filter((_, i) => i !== selectedImage),
+    ...ImageUtils.getBrandFallbacks(mobile.brand)
+  ];
 
   const scrollToSpecs = () => {
     const specsSection = document.getElementById('detailed-specifications');
@@ -77,11 +87,11 @@ export function MobileHero({ mobile }: MobileHeroProps) {
             <div className="lg:w-1/2 p-6">
               <div className="aspect-square bg-gradient-to-br from-gray-50 via-white to-gray-100 dark:from-gray-800 dark:via-gray-900 dark:to-gray-800 rounded-lg mb-4 relative overflow-hidden shadow-inner">
                 <SafeImage
-                  src={allImages}
+                  src={prioritizedSources}
                   alt={mobile.name}
                   className="w-full h-full object-contain rounded-lg"
                   quality="high"
-                  placeholder={ImageUtils.generatePlaceholder(allImages[0] || mobile.imageUrl)}
+                  placeholder={ImageUtils.generatePlaceholder(prioritizedSources[0] || mobile.imageUrl)}
                   sizes="(max-width: 1024px) 100vw, 50vw"
                   data-testid="mobile-hero-image"
                 />
@@ -92,10 +102,10 @@ export function MobileHero({ mobile }: MobileHeroProps) {
                 </div>
               </div>
 
-              {/* Enhanced thumbnail gallery */}
-              {allImages.length > 1 && (
+              {/* Enhanced thumbnail gallery - only show if there are multiple real images */}
+              {realImages.length > 1 && (
                 <div className="grid grid-cols-4 gap-2">
-                  {allImages.slice(0, 8).map((image, index) => (
+                  {realImages.slice(0, 8).map((image, index) => (
                     <button
                       key={index}
                       onClick={() => setSelectedImage(index)}
@@ -118,9 +128,9 @@ export function MobileHero({ mobile }: MobileHeroProps) {
                   ))}
                   
                   {/* View all images indicator */}
-                  {allImages.length > 8 && (
+                  {realImages.length > 8 && (
                     <div className="aspect-square border-2 border-gray-200 dark:border-gray-600 rounded flex items-center justify-center text-xs text-gray-500 dark:text-gray-400 bg-gray-50 dark:bg-gray-800">
-                      +{allImages.length - 8}
+                      +{realImages.length - 8}
                     </div>
                   )}
                 </div>
@@ -230,130 +240,95 @@ export function MobileHero({ mobile }: MobileHeroProps) {
                     </div>
                   </div>
                 </div>
-                
-                {mobile.shortSpecs.battery && (
-                  <div className="flex items-center justify-between py-2 border-b border-gray-100 dark:border-gray-700">
-                    <span className="text-gray-600 dark:text-gray-300">Battery</span>
-                    <span className="font-medium">{mobile.shortSpecs.battery}</span>
+
+                {/* Actions */}
+                <div className="flex items-center gap-3 mt-4">
+                  <Button onClick={handleAddToCompare} variant={inCompare ? "secondary" : "default"}>
+                    {inCompare ? <Check className="mr-2 h-4 w-4" /> : <Plus className="mr-2 h-4 w-4" />}
+                    {inCompare ? "In Compare" : "Add to Compare"}
+                  </Button>
+                  <Button variant="outline">
+                    <Share2 className="mr-2 h-4 w-4" /> Share
+                  </Button>
+                </div>
+              </div>
+
+              {/* AI Tools */}
+              <div className="space-y-4">
+                <div className="flex items-center justify-between py-2 border-b border-gray-100 dark:border-gray-700">
+                  <div className="flex items-center gap-2">
+                    <Camera className="h-4 w-4 text-gray-500" />
+                    <span className="text-gray-600 dark:text-gray-300">Camera Quality Analyzer</span>
+                  </div>
+                  <Button variant="outline" size="sm" onClick={() => setShowCameraAnalyzer(!showCameraAnalyzer)}>
+                    {showCameraAnalyzer ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+                  </Button>
+                </div>
+                {showCameraAnalyzer && (
+                  <div className="p-4 border rounded-lg">
+                    <CameraQualityAnalyzer mobile={mobile} />
                   </div>
                 )}
-              </div>
 
-              {/* Action Buttons */}
-              <div className="flex space-x-4">
-                <Button 
-                  size="lg" 
-                  className="flex-1"
-                  onClick={scrollToSpecs}
-                  data-testid="button-view-full-specs"
-                >
-                  View Full Specifications
-                </Button>
-                <Button 
-                  variant={inCompare ? "default" : "outline"}
-                  size="lg"
-                  onClick={handleAddToCompare}
-                  disabled={inCompare}
-                  data-testid="button-add-to-compare"
-                >
-                  {inCompare ? (
-                    <>
-                      <Check className="h-4 w-4 mr-2" />
-                      Added to Compare
-                    </>
-                  ) : (
-                    <>
-                      <Plus className="h-4 w-4 mr-2" />
-                      Add to Compare
-                    </>
-                  )}
-                </Button>
-              </div>
-
-              {/* AI-Powered Features */}
-              <Card className="mt-6 bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-950/20 dark:to-pink-950/20 border-purple-200 dark:border-purple-800">
-                <CardContent className="p-4">
-                  <div className="flex items-center gap-2 mb-3">
-                    <Sparkles className="h-5 w-5 text-purple-600" />
-                    <h3 className="font-semibold text-purple-900 dark:text-purple-100">
-                      AI-Powered Analysis
-                    </h3>
+                <div className="flex items-center justify-between py-2 border-b border-gray-100 dark:border-gray-700">
+                  <div className="flex items-center gap-2">
+                    <Monitor className="h-4 w-4 text-gray-500" />
+                    <span className="text-gray-600 dark:text-gray-300">Screen Quality Analyzer</span>
                   </div>
-                  <div className="grid grid-cols-2 gap-3">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setShowPhotoSearch(true)}
-                      className="justify-start"
-                    >
-                      <Upload className="h-4 w-4 mr-2" />
-                      Photo Search
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setShowCameraAnalyzer(true)}
-                      className="justify-start"
-                    >
-                      <Camera className="h-4 w-4 mr-2" />
-                      Camera Analysis
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setShowScreenAnalyzer(true)}
-                      className="justify-start"
-                    >
-                      <Monitor className="h-4 w-4 mr-2" />
-                      Screen Quality
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setShowDesignFinder(true)}
-                      className="justify-start"
-                    >
-                      <Palette className="h-4 w-4 mr-2" />
-                      Similar Designs
-                    </Button>
+                  <Button variant="outline" size="sm" onClick={() => setShowScreenAnalyzer(!showScreenAnalyzer)}>
+                    {showScreenAnalyzer ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+                  </Button>
+                </div>
+                {showScreenAnalyzer && (
+                  <div className="p-4 border rounded-lg">
+                    <ScreenQualityAnalyzer mobile={mobile} />
                   </div>
-                </CardContent>
-              </Card>
+                )}
 
-              {/* Release Date */}
-              <div className="mt-6 text-sm text-gray-600">
-                <span className="font-medium">Release Date:</span> {mobile.releaseDate}
+                <div className="flex items-center justify-between py-2 border-b border-gray-100 dark:border-gray-700">
+                  <div className="flex items-center gap-2">
+                    <Palette className="h-4 w-4 text-gray-500" />
+                    <span className="text-gray-600 dark:text-gray-300">Design Similarity Finder</span>
+                  </div>
+                  <Button variant="outline" size="sm" onClick={() => setShowDesignFinder(!showDesignFinder)}>
+                    {showDesignFinder ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+                  </Button>
+                </div>
+                {showDesignFinder && (
+                  <div className="p-4 border rounded-lg">
+                    <DesignSimilarityFinder mobile={mobile} />
+                  </div>
+                )}
+
+                <div className="flex items-center justify-between py-2 border-b border-gray-100 dark:border-gray-700">
+                  <div className="flex items-center gap-2">
+                    <Upload className="h-4 w-4 text-gray-500" />
+                    <span className="text-gray-600 dark:text-gray-300">Photo Upload Search</span>
+                  </div>
+                  <Button variant="outline" size="sm" onClick={() => setShowPhotoSearch(!showPhotoSearch)}>
+                    {showPhotoSearch ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+                  </Button>
+                </div>
+                {showPhotoSearch && (
+                  <div className="p-4 border rounded-lg">
+                    <PhotoUploadSearch onClose={() => setShowPhotoSearch(false)} />
+                  </div>
+                )}
+
+                <div className="flex items-center justify-between py-2 border-b border-gray-100 dark:border-gray-700">
+                  <div className="flex items-center gap-2">
+                    <Sparkles className="h-4 w-4 text-gray-500" />
+                    <span className="text-gray-600 dark:text-gray-300">Helpful Tips</span>
+                  </div>
+                  <Button variant="outline" size="sm" onClick={scrollToSpecs}>
+                    View Specifications
+                  </Button>
+                </div>
               </div>
             </div>
           </div>
         </CardContent>
       </Card>
-
-      {/* AI Modal Components */}
-      {showPhotoSearch && (
-        <PhotoUploadSearch onClose={() => setShowPhotoSearch(false)} />
-      )}
-      
-      {showCameraAnalyzer && (
-        <CameraQualityAnalyzer 
-          mobile={mobile} 
-          onClose={() => setShowCameraAnalyzer(false)} 
-        />
-      )}
-      
-      {showScreenAnalyzer && (
-        <ScreenQualityAnalyzer 
-          mobile={mobile} 
-          onClose={() => setShowScreenAnalyzer(false)} 
-        />
-      )}
-      
-      {showDesignFinder && (
-        <DesignSimilarityFinder 
-          mobile={mobile} 
-          onClose={() => setShowDesignFinder(false)} 
-        />
-      )}
     </section>
   );
 }

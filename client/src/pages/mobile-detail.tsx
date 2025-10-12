@@ -94,8 +94,22 @@ export default function MobileDetail() {
         canonical={`/${brandSlug}/${mobileSlug}`}
         ogImage={generateOGImageUrl(mobile)}
         jsonLd={combinedSchema}
+        useAI={true}
+        mobileData={{
+          name: mobile.name,
+          brand: mobile.brand,
+          price: mobile.price,
+          shortSpecs: {
+            ram: mobile.shortSpecs?.ram,
+            storage: mobile.shortSpecs?.storage,
+            camera: mobile.shortSpecs?.camera,
+            battery: mobile.shortSpecs?.battery,
+            display: mobile.shortSpecs?.display,
+            processor: mobile.shortSpecs?.processor,
+          },
+        }}
       />
-      <RichMetaTags mobile={mobile} page="mobile" />
+      <RichMetaTags mobile={mobile} page="mobile" useAI={true} />
       
       <div className="min-h-screen bg-gray-50">
         <Header />

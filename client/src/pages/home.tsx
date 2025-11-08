@@ -1,5 +1,6 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { useLocation } from "wouter";
 import { Header } from "@/components/layout/header";
 import { Footer } from "@/components/layout/footer";
 import { Breadcrumbs } from "@/components/layout/breadcrumbs";
@@ -12,6 +13,7 @@ import { useStats } from "@/hooks/use-stats";
 import type { Mobile, Brand } from "@shared/schema";
 
 export default function Home() {
+  const [location, setLocation] = useLocation();
   const [filter, setFilter] = useState<'latest' | 'popular' | 'budget'>('latest');
   
   const { data: allMobiles, isLoading: mobilesLoading } = useQuery<Mobile[]>({
@@ -23,6 +25,38 @@ export default function Home() {
   });
 
   const stats = useStats();
+
+  useEffect(() => {
+    const [, search] = location.split("?");
+    const params = new URLSearchParams(search || "");
+    const filterParam = params.get("filter") as 'latest' | 'popular' | 'budget' | null;
+
+    if (filterParam && ['latest', 'popular', 'budget'].includes(filterParam)) {
+      setFilter((current) => (current === filterParam ? current : filterParam));
+    } else {
+      setFilter((current) => (current === 'latest' ? current : 'latest'));
+    }
+  }, [location]);
+
+  const updateFilter = (nextFilter: 'latest' | 'popular' | 'budget') => {
+    setFilter(nextFilter);
+
+    const [pathname, search] = location.split("?");
+    const params = new URLSearchParams(search || "");
+
+    if (nextFilter === 'latest') {
+      params.delete('filter');
+    } else {
+      params.set('filter', nextFilter);
+    }
+
+    const queryString = params.toString();
+    const nextLocation = queryString ? `${pathname}?${queryString}` : pathname;
+
+    if (nextLocation !== location) {
+      setLocation(nextLocation);
+    }
+  };
 
   const getPrice = (mobile: Mobile) => {
     const price = mobile.price;
@@ -162,7 +196,7 @@ export default function Home() {
                 <Button 
                   variant={filter === 'latest' ? 'default' : 'outline'} 
                   size="sm" 
-                  onClick={() => setFilter('latest')}
+                  onClick={() => updateFilter('latest')}
                   data-testid="filter-latest"
                 >
                   Latest
@@ -170,7 +204,7 @@ export default function Home() {
                 <Button 
                   variant={filter === 'popular' ? 'default' : 'outline'} 
                   size="sm" 
-                  onClick={() => setFilter('popular')}
+                  onClick={() => updateFilter('popular')}
                   data-testid="filter-popular"
                 >
                   Popular
@@ -178,7 +212,7 @@ export default function Home() {
                 <Button 
                   variant={filter === 'budget' ? 'default' : 'outline'} 
                   size="sm" 
-                  onClick={() => setFilter('budget')}
+                  onClick={() => updateFilter('budget')}
                   data-testid="filter-budget"
                 >
                   Budget
@@ -239,7 +273,11 @@ export default function Home() {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               {budgetCount > 0 && (
                 <div className="bg-gradient-to-br from-green-50 to-green-100 border border-green-200 rounded-lg p-6 hover:shadow-md transition-shadow cursor-pointer"
-                     onClick={() => window.location.href = '/mobiles?price=budget'}
+                     onClick={() => {
+                       if (window.location.pathname !== '/mobiles' || window.location.search !== '?price=budget') {
+                         window.location.href = '/mobiles?price=budget';
+                       }
+                     }}
                      data-testid="price-range-budget">
                   <h3 className="text-lg font-semibold text-green-800 mb-2">Budget Phones</h3>
                   <p className="text-green-600 text-2xl font-bold mb-2">Under ₨50,000</p>
@@ -250,7 +288,11 @@ export default function Home() {
 
               {midRangeCount > 0 && (
                 <div className="bg-gradient-to-br from-blue-50 to-blue-100 border border-blue-200 rounded-lg p-6 hover:shadow-md transition-shadow cursor-pointer"
-                     onClick={() => window.location.href = '/mobiles?price=midrange'}
+                     onClick={() => {
+                       if (window.location.pathname !== '/mobiles' || window.location.search !== '?price=midrange') {
+                         window.location.href = '/mobiles?price=midrange';
+                       }
+                     }}
                      data-testid="price-range-midrange">
                   <h3 className="text-lg font-semibold text-blue-800 mb-2">Mid-Range</h3>
                   <p className="text-blue-600 text-2xl font-bold mb-2">₨50K - ₨150K</p>
@@ -261,7 +303,11 @@ export default function Home() {
 
               {flagshipCount > 0 && (
                 <div className="bg-gradient-to-br from-purple-50 to-purple-100 border border-purple-200 rounded-lg p-6 hover:shadow-md transition-shadow cursor-pointer"
-                     onClick={() => window.location.href = '/mobiles?price=flagship'}
+                     onClick={() => {
+                       if (window.location.pathname !== '/mobiles' || window.location.search !== '?price=flagship') {
+                         window.location.href = '/mobiles?price=flagship';
+                       }
+                     }}
                      data-testid="price-range-flagship">
                   <h3 className="text-lg font-semibold text-purple-800 mb-2">Flagship</h3>
                   <p className="text-purple-600 text-2xl font-bold mb-2">Above ₨150K</p>

@@ -12,7 +12,7 @@ import { Search as SearchIcon } from "lucide-react";
 import type { Mobile } from "@shared/schema";
 
 export default function Search() {
-  const [location] = useLocation();
+  const [location, setLocation] = useLocation();
   const [searchQuery, setSearchQuery] = useState("");
   const [currentQuery, setCurrentQuery] = useState("");
 
@@ -25,8 +25,8 @@ export default function Search() {
   }, [location]);
 
   const { data: searchResults, isLoading } = useQuery<Mobile[]>({
-    queryKey: [`/api/search?q=${encodeURIComponent(currentQuery)}`],
-    enabled: currentQuery.length > 0,
+    queryKey: [`/api/mobiles?search=${encodeURIComponent(currentQuery)}`],
+    enabled: currentQuery.trim().length > 0,
   });
 
   const breadcrumbs = [
@@ -39,7 +39,9 @@ export default function Search() {
     setCurrentQuery(searchQuery);
     // Update URL without triggering navigation
     const newUrl = searchQuery ? `/search?q=${encodeURIComponent(searchQuery)}` : '/search';
-    window.history.pushState({}, '', newUrl);
+    if (newUrl !== location) {
+      setLocation(newUrl, { replace: true });
+    }
   };
 
   return (

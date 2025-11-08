@@ -1,3 +1,4 @@
+import { useMemo, useState, useEffect } from "react";
 import { useParams } from "wouter";
 import { useQuery } from "@tanstack/react-query";
 import { Header } from "@/components/layout/header";
@@ -11,8 +12,37 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import type { Brand, Mobile } from "@shared/schema";
 
+type PriceFilter = "all" | "budget" | "mid" | "premium";
+type SortOption = "newest" | "price-low" | "price-high" | "popular";
+
+const getNumericPrice = (price: Mobile["price"]) => {
+  if (!price) return 0;
+  if (typeof price === "number") return price;
+  const numeric = parseInt(price.replace(/[^0-9]/g, ""), 10);
+  return Number.isNaN(numeric) ? 0 : numeric;
+};
+
+const getReleaseYear = (mobile: Mobile) => {
+  if (!mobile.releaseDate) return "";
+  const match = mobile.releaseDate.match(/\d{4}/);
+  return match ? match[0] : "";
+};
+
+const getReleaseTimestamp = (mobile: Mobile) => {
+  if (!mobile.releaseDate) return 0;
+  const timestamp = Date.parse(mobile.releaseDate);
+  if (!Number.isNaN(timestamp)) return timestamp;
+  const year = getReleaseYear(mobile);
+  return year ? new Date(Number(year), 0, 1).getTime() : 0;
+};
+
 export default function BrandCategory() {
   const { brand: brandSlug } = useParams<{ brand: string }>();
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage] = useState(20);
+  const [priceFilter, setPriceFilter] = useState<PriceFilter>("all");
+  const [releaseYearFilter, setReleaseYearFilter] = useState<string>("all");
+  const [sortOption, setSortOption] = useState<SortOption>("newest");
 
   const { data: brand } = useQuery<Brand>({
     queryKey: ["/api/brands", brandSlug],
@@ -22,6 +52,95 @@ export default function BrandCategory() {
     queryKey: [`/api/mobiles?brand=${brandSlug}`],
     enabled: !!brandSlug,
   });
+
+  useEffect(() => {
+    setCurrentPage(1);
+    setPriceFilter("all");
+    setReleaseYearFilter("all");
+    setSortOption("newest");
+  }, [brandSlug]);
+
+  const releaseYearOptions = useMemo(() => {
+    if (!mobiles) return [] as string[];
+    const years = new Set<string>();
+    mobiles.forEach((mobile) => {
+      const year = getReleaseYear(mobile);
+      if (year) {
+        years.add(year);
+      }
+    });
+    return Array.from(years).sort((a, b) => Number(b) - Number(a));
+  }, [mobiles]);
+
+  const filteredMobiles = useMemo(() => {
+    if (!mobiles) return [] as Mobile[];
+
+    let result = mobiles;
+
+    if (priceFilter !== "all") {
+      result = result.filter((mobile) => {
+        const price = getNumericPrice(mobile.price);
+        if (price === 0) return false;
+        if (priceFilter === "budget") return price < 50000;
+        if (priceFilter === "mid") return price >= 50000 && price <= 150000;
+        if (priceFilter === "premium") return price > 150000;
+        return true;
+      });
+    }
+
+    if (releaseYearFilter !== "all") {
+      result = result.filter((mobile) => getReleaseYear(mobile) === releaseYearFilter);
+    }
+
+    const sorted = [...result];
+    switch (sortOption) {
+      case "price-low":
+        sorted.sort((a, b) => getNumericPrice(a.price) - getNumericPrice(b.price));
+        break;
+      case "price-high":
+        sorted.sort((a, b) => getNumericPrice(b.price) - getNumericPrice(a.price));
+        break;
+      case "popular":
+        sorted.sort((a, b) => {
+          const bPopular = (b as any).isFeatured ? 1 : 0;
+          const aPopular = (a as any).isFeatured ? 1 : 0;
+          if (bPopular !== aPopular) {
+            return bPopular - aPopular;
+          }
+          return getReleaseTimestamp(b) - getReleaseTimestamp(a);
+        });
+        break;
+      case "newest":
+      default:
+        sorted.sort((a, b) => getReleaseTimestamp(b) - getReleaseTimestamp(a));
+        break;
+    }
+
+    return sorted;
+  }, [mobiles, priceFilter, releaseYearFilter, sortOption]);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [priceFilter, releaseYearFilter, sortOption]);
+
+  useEffect(() => {
+    if (filteredMobiles.length === 0) {
+      setCurrentPage(1);
+      return;
+    }
+    const totalPages = Math.max(1, Math.ceil(filteredMobiles.length / itemsPerPage));
+    setCurrentPage((prev) => Math.min(prev, totalPages));
+  }, [filteredMobiles, itemsPerPage]);
+
+  const paginatedMobiles = useMemo(() => {
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+    return filteredMobiles.slice(startIndex, endIndex);
+  }, [filteredMobiles, currentPage, itemsPerPage]);
+
+  const totalBrandMobiles = mobiles?.length ?? 0;
+  const totalFilteredMobiles = filteredMobiles.length;
+  const totalPages = totalFilteredMobiles > 0 ? Math.ceil(totalFilteredMobiles / itemsPerPage) : 0;
 
   const breadcrumbs = [
     { label: "Home", href: "/" },
@@ -63,7 +182,7 @@ export default function BrandCategory() {
               </div>
               <div>
                 <h1 className="text-3xl font-bold text-gray-900">{brand?.name} Mobile Phones</h1>
-                <p className="text-gray-600">{mobiles?.length || 0} models available</p>
+                <p className="text-gray-600">{totalBrandMobiles} models available</p>
               </div>
             </div>
             {brand?.description && (
@@ -75,29 +194,40 @@ export default function BrandCategory() {
 
           {/* Filters */}
           <div className="flex flex-wrap gap-4 mb-8">
-            <Select>
+            <Select
+              value={priceFilter}
+              onValueChange={(value) => setPriceFilter(value as PriceFilter)}
+            >
               <SelectTrigger className="w-[180px]" data-testid="filter-price">
                 <SelectValue placeholder="Price Range" />
               </SelectTrigger>
               <SelectContent>
+                <SelectItem value="all">All Prices</SelectItem>
                 <SelectItem value="budget">Under ₨50,000</SelectItem>
                 <SelectItem value="mid">₨50K - ₨150K</SelectItem>
                 <SelectItem value="premium">Above ₨150K</SelectItem>
               </SelectContent>
             </Select>
 
-            <Select>
+            <Select
+              value={releaseYearFilter}
+              onValueChange={(value) => setReleaseYearFilter(value)}
+            >
               <SelectTrigger className="w-[180px]" data-testid="filter-release">
                 <SelectValue placeholder="Release Year" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="2024">2024</SelectItem>
-                <SelectItem value="2023">2023</SelectItem>
-                <SelectItem value="2022">2022</SelectItem>
+                <SelectItem value="all">All Years</SelectItem>
+                {releaseYearOptions.map((year) => (
+                  <SelectItem key={year} value={year}>{year}</SelectItem>
+                ))}
               </SelectContent>
             </Select>
 
-            <Select>
+            <Select
+              value={sortOption}
+              onValueChange={(value) => setSortOption(value as SortOption)}
+            >
               <SelectTrigger className="w-[180px]" data-testid="filter-sort">
                 <SelectValue placeholder="Sort By" />
               </SelectTrigger>
@@ -109,7 +239,16 @@ export default function BrandCategory() {
               </SelectContent>
             </Select>
 
-            <Button variant="outline" data-testid="button-clear-filters">
+            <Button
+              variant="outline"
+              data-testid="button-clear-filters"
+              onClick={() => {
+                setPriceFilter("all");
+                setReleaseYearFilter("all");
+                setSortOption("newest");
+              }}
+              disabled={priceFilter === "all" && releaseYearFilter === "all" && sortOption === "newest"}
+            >
               Clear Filters
             </Button>
           </div>
@@ -133,11 +272,50 @@ export default function BrandCategory() {
               ))}
             </div>
           ) : mobiles && mobiles.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-              {mobiles.map((mobile) => (
-                <MobileCard key={mobile.id} mobile={mobile} />
-              ))}
-            </div>
+            filteredMobiles.length > 0 ? (
+              <>
+                <div className="mb-4 text-sm text-gray-600">
+                  Showing {Math.min((currentPage - 1) * itemsPerPage + 1, totalFilteredMobiles)} - {Math.min(currentPage * itemsPerPage, totalFilteredMobiles)} of {totalFilteredMobiles} mobile phones
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                  {paginatedMobiles.map((mobile) => (
+                    <MobileCard key={mobile.id} mobile={mobile} />
+                  ))}
+                </div>
+                {totalPages > 1 && (
+                  <div className="flex justify-center mt-8 gap-2">
+                    <Button
+                      variant="outline"
+                      onClick={() => setCurrentPage((page) => Math.max(1, page - 1))}
+                      disabled={currentPage === 1}
+                    >
+                      Previous
+                    </Button>
+                    <span className="flex items-center px-4 text-sm">
+                      Page {currentPage} of {totalPages}
+                    </span>
+                    <Button
+                      variant="outline"
+                      onClick={() => setCurrentPage((page) => Math.min(totalPages, page + 1))}
+                      disabled={currentPage === totalPages}
+                    >
+                      Next
+                    </Button>
+                  </div>
+                )}
+              </>
+            ) : (
+              <div className="text-center py-12">
+                <p className="text-gray-500 text-lg mb-4">No mobiles match the selected filters.</p>
+                <Button variant="outline" onClick={() => {
+                  setPriceFilter("all");
+                  setReleaseYearFilter("all");
+                  setSortOption("newest");
+                }}>
+                  Reset Filters
+                </Button>
+              </div>
+            )
           ) : (
             <div className="text-center py-12">
               <p className="text-gray-500 text-lg">No mobiles found for {brand?.name}</p>

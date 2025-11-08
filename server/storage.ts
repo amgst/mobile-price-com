@@ -1,5 +1,5 @@
 import { type User, type InsertUser, type Brand, type InsertBrand, type Mobile, type InsertMobile, users, brands, mobiles } from "../shared/schema.js";
-import { eq, like, or, and, sql } from "drizzle-orm";
+import { eq, ilike, or, and, sql } from "drizzle-orm";
 import { db } from "./db.js";
 
 export interface IStorage {
@@ -317,15 +317,21 @@ export class DatabaseStorage implements IStorage {
   }
 
   async searchMobiles(query: string): Promise<Mobile[]> {
-    const searchTerm = `%${query.toLowerCase()}%`;
+    await this.ensureInitialized();
+    const trimmedQuery = query.trim();
+    if (!trimmedQuery) {
+      return [];
+    }
+
+    const searchTerm = `%${trimmedQuery}%`;
     return await db
       .select()
       .from(mobiles)
       .where(
         or(
-          like(mobiles.name, searchTerm),
-          like(mobiles.brand, searchTerm),
-          like(mobiles.model, searchTerm)
+          ilike(mobiles.name, searchTerm),
+          ilike(mobiles.brand, searchTerm),
+          ilike(mobiles.model, searchTerm)
         )
       );
   }

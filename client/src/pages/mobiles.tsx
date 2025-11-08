@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button";
 import type { Mobile } from "@shared/schema";
 
 export default function Mobiles() {
-  const [, setLocation] = useLocation();
+  const [location, setLocation] = useLocation();
   const [filter, setFilter] = useState<'all' | 'budget' | 'midrange' | 'flagship'>('all');
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(20);
@@ -18,6 +18,40 @@ export default function Mobiles() {
   const { data: mobiles, isLoading } = useQuery<Mobile[]>({
     queryKey: ["/api/mobiles"],
   });
+
+  useEffect(() => {
+    const [, search] = location.split("?");
+    const params = new URLSearchParams(search || "");
+    const priceFilter = params.get("price");
+
+    const derivedFilter: 'all' | 'budget' | 'midrange' | 'flagship' =
+      priceFilter === "budget" || priceFilter === "midrange" || priceFilter === "flagship"
+        ? priceFilter
+        : "all";
+
+    setFilter((current) => (current === derivedFilter ? current : derivedFilter));
+  }, [location]);
+
+  const updateFilter = (nextFilter: 'all' | 'budget' | 'midrange' | 'flagship') => {
+    setFilter(nextFilter);
+    const [pathname, search] = location.split("?");
+    const params = new URLSearchParams(search || "");
+
+    if (nextFilter === "all") {
+      params.delete("price");
+    } else {
+      params.set("price", nextFilter);
+    }
+
+    params.delete("page");
+
+    const queryString = params.toString();
+    const nextLocation = queryString ? `${pathname}?${queryString}` : pathname;
+
+    if (nextLocation !== location) {
+      setLocation(nextLocation);
+    }
+  };
 
   const filteredMobiles = useMemo(() => {
     if (!mobiles) return [];
@@ -78,28 +112,28 @@ export default function Mobiles() {
               <Button 
                 variant={filter === 'all' ? 'default' : 'outline'} 
                 size="sm" 
-                onClick={() => setFilter('all')}
+                onClick={() => updateFilter('all')}
               >
                 All
               </Button>
               <Button 
                 variant={filter === 'budget' ? 'default' : 'outline'} 
                 size="sm" 
-                onClick={() => setFilter('budget')}
+                onClick={() => updateFilter('budget')}
               >
                 Budget
               </Button>
               <Button 
                 variant={filter === 'midrange' ? 'default' : 'outline'} 
                 size="sm" 
-                onClick={() => setFilter('midrange')}
+                onClick={() => updateFilter('midrange')}
               >
                 Mid-Range
               </Button>
               <Button 
                 variant={filter === 'flagship' ? 'default' : 'outline'} 
                 size="sm" 
-                onClick={() => setFilter('flagship')}
+                onClick={() => updateFilter('flagship')}
               >
                 Flagship
               </Button>

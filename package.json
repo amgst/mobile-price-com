@@ -11,6 +11,7 @@
     "db:push": "drizzle-kit push",
     "db:export": "node scripts/export-data.js",
     "db:import": "node scripts/import-data.js",
+    "db:import-csv": "node scripts/import-csv.js",
     "db:import-neon": "node scripts/import-neon-export.js",
     "db:migrate": "npm run db:export && npm run db:import",
     "db:setup": "node scripts/setup-new-database.js"

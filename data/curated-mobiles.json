@@ -1,0 +1,353 @@
+[
+  {
+    "brand": "apple",
+    "model": "iphone-15-pro-max",
+    "name": "Apple iPhone 15 Pro Max",
+    "releaseDate": "2023-09-22",
+    "price": {
+      "usd": 1199,
+      "pkr": 409999
+    },
+    "summary": "Apple's 2023 flagship pairs the A17 Pro chipset with a titanium frame, a versatile triple camera system, and all-day battery life.",
+    "source": "https://www.apple.com/iphone-15-pro/",
+    "shortSpecs": {
+      "display": "6.7\" LTPO Super Retina XDR OLED, 120Hz",
+      "processor": "Apple A17 Pro (3 nm)",
+      "memory": "8GB RAM",
+      "storage": "256GB / 512GB / 1TB NVMe",
+      "cameras": "48MP main + 12MP telephoto + 12MP ultrawide; 12MP front",
+      "battery": "4422mAh (typ), USB-C + 15W MagSafe"
+    },
+    "highlights": [
+      "Titanium chassis with Action Button",
+      "5× tetraprism telephoto lens with sensor-shift OIS",
+      "ProRes, Log video, and spatial video capture"
+    ]
+  },
+  {
+    "brand": "samsung",
+    "model": "galaxy-s24-ultra",
+    "name": "Samsung Galaxy S24 Ultra",
+    "releaseDate": "2024-01-31",
+    "price": {
+      "usd": 1299,
+      "pkr": 459999
+    },
+    "summary": "Samsung refines the Ultra formula with flatter sides, Gorilla Armor glass, and the Snapdragon 8 Gen 3 for Galaxy across all regions.",
+    "source": "https://www.samsung.com/global/galaxy/galaxy-s24-ultra/",
+    "shortSpecs": {
+      "display": "6.8\" QHD+ Dynamic LTPO AMOLED 2X, 120Hz",
+      "processor": "Qualcomm Snapdragon 8 Gen 3 for Galaxy",
+      "memory": "12GB RAM",
+      "storage": "256GB / 512GB / 1TB UFS 4.0",
+      "cameras": "200MP main + 50MP 5× periscope + 10MP 3× telephoto + 12MP ultrawide; 12MP front",
+      "battery": "5000mAh, 45W wired, 15W wireless, 4.5W reverse"
+    },
+    "highlights": [
+      "Integrated S Pen with latency under 2.8ms",
+      "Gorilla Armor glass with anti-glare coating",
+      "Galaxy AI features (Circle to Search, Live Translate, Note Assist)"
+    ]
+  },
+  {
+    "brand": "google",
+    "model": "pixel-8-pro",
+    "name": "Google Pixel 8 Pro",
+    "releaseDate": "2023-10-12",
+    "price": {
+      "usd": 999,
+      "pkr": 329999
+    },
+    "summary": "Pixel 8 Pro leans into AI-assisted photography with the Tensor G3 chipset, pro camera controls, and seven years of software support.",
+    "source": "https://store.google.com/product/pixel_8_pro",
+    "shortSpecs": {
+      "display": "6.7\" LTPO OLED, 120Hz, 1344×2992",
+      "processor": "Google Tensor G3 + Titan M2",
+      "memory": "12GB RAM",
+      "storage": "128GB / 256GB / 512GB / 1TB UFS 3.1",
+      "cameras": "50MP main + 48MP 5× telephoto + 48MP ultrawide; 10.5MP front",
+      "battery": "5050mAh, 30W wired, 23W Qi wireless"
+    },
+    "highlights": [
+      "Night Sight video and Video Boost editing pipeline",
+      "Body temperature sensor (select markets)",
+      "7 years of Android OS + security + feature drops"
+    ]
+  },
+  {
+    "brand": "oneplus",
+    "model": "oneplus-12",
+    "name": "OnePlus 12",
+    "releaseDate": "2023-12-11",
+    "price": {
+      "usd": 799,
+      "pkr": 274999
+    },
+    "summary": "OnePlus combines Snapdragon 8 Gen 3 power, Hasselblad-calibrated cameras, and 100W SuperVOOC charging in a refined flagship.",
+    "source": "https://www.oneplus.com/global/oneplus-12",
+    "shortSpecs": {
+      "display": "6.82\" QHD+ LTPO OLED, 120Hz, up to 4500 nits",
+      "processor": "Qualcomm Snapdragon 8 Gen 3",
+      "memory": "12GB / 16GB LPDDR5X RAM",
+      "storage": "256GB / 512GB UFS 4.0",
+      "cameras": "50MP Sony LYT-808 main + 64MP 3× periscope + 48MP ultrawide; 32MP front",
+      "battery": "5400mAh dual-cell, 100W wired, 50W AirVOOC wireless"
+    },
+    "highlights": [
+      "Three-level Alert Slider with customizable actions",
+      "RainWater Smart Touch for wet display usability",
+      "Dolby Vision HDR video capture and playback"
+    ]
+  },
+  {
+    "brand": "xiaomi",
+    "model": "xiaomi-14-ultra",
+    "name": "Xiaomi 14 Ultra",
+    "releaseDate": "2024-02-25",
+    "price": {
+      "usd": 1299,
+      "pkr": 399999
+    },
+    "summary": "Xiaomi’s Leica partnership peaks with the 14 Ultra’s variable f/1.63-f/4.0 main lens, a 1\" sensor, and pro-grade video controls.",
+    "source": "https://www.mi.com/global/product/xiaomi-14-ultra/",
+    "shortSpecs": {
+      "display": "6.73\" QHD+ LTPO AMOLED, 120Hz, 3000 nits peak",
+      "processor": "Qualcomm Snapdragon 8 Gen 3",
+      "memory": "16GB LPDDR5X",
+      "storage": "512GB / 1TB UFS 4.0",
+      "cameras": "50MP 1\" LYT-900 variable aperture main + 50MP 3.2× tele + 50MP 5× periscope + 50MP ultrawide; 32MP front",
+      "battery": "5000mAh, 90W wired, 80W wireless, 10W reverse"
+    },
+    "highlights": [
+      "Leica Authentic & Vibrant color science profiles",
+      "Professional Photography Kit accessory with physical controls",
+      "IP68 ingress protection with nanotech vegan leather finish"
+    ]
+  },
+  {
+    "brand": "oppo",
+    "model": "find-x7-ultra",
+    "name": "Oppo Find X7 Ultra",
+    "releaseDate": "2024-01-08",
+    "price": {
+      "usd": 1099,
+      "pkr": 349999
+    },
+    "summary": "Find X7 Ultra debuts Oppo’s dual periscope system, delivering 3× and 6× optical zoom alongside a Hasselblad color pipeline.",
+    "source": "https://www.oppo.com/en/smartphones/series-find-x/find-x7-ultra/",
+    "shortSpecs": {
+      "display": "6.82\" QHD+ LTPO AMOLED, 120Hz",
+      "processor": "Qualcomm Snapdragon 8 Gen 3",
+      "memory": "16GB LPDDR5X",
+      "storage": "256GB / 512GB UFS 4.0",
+      "cameras": "50MP main (1/1.4\") + 50MP 3× periscope + 50MP 6× periscope + 50MP ultrawide; 32MP front",
+      "battery": "5000mAh, 100W SuperVOOC, 50W AirVOOC"
+    },
+    "highlights": [
+      "Hasselblad Portrait Mode with Master Mode tuning",
+      "Stereo speakers with spatial audio support",
+      "ColorOS 14 with Trinity Engine performance optimizations"
+    ]
+  },
+  {
+    "brand": "vivo",
+    "model": "x100-pro",
+    "name": "Vivo X100 Pro",
+    "releaseDate": "2023-11-21",
+    "price": {
+      "usd": 999,
+      "pkr": 329999
+    },
+    "summary": "Vivo’s Zeiss co-engineering brings a 1\" main sensor, V3 imaging chip, and a floating periscope lens to the Dimensity 9300-powered X100 Pro.",
+    "source": "https://www.vivo.com/en/products/x100pro",
+    "shortSpecs": {
+      "display": "6.78\" LTPO AMOLED, 120Hz, 1260×2800",
+      "processor": "MediaTek Dimensity 9300",
+      "memory": "16GB LPDDR5T",
+      "storage": "512GB / 1TB UFS 4.0",
+      "cameras": "50MP 1\" main + 50MP 100mm f/2.5 periscope + 50MP ultrawide; 32MP front",
+      "battery": "5400mAh, 100W wired, 50W wireless"
+    },
+    "highlights": [
+      "Zeiss T* coating and Vario-Apo-Sonnar portrait tuning",
+      "Vivo V3 imaging chip for 4K cinematic portrait video",
+      "IP68 rating with curved “Sun Halo” camera design"
+    ]
+  },
+  {
+    "brand": "realme",
+    "model": "gt-5-pro",
+    "name": "Realme GT 5 Pro",
+    "releaseDate": "2023-12-07",
+    "price": {
+      "usd": 699,
+      "pkr": 219999
+    },
+    "summary": "Realme’s GT 5 Pro delivers flagship Snapdragon performance, rapid 100W charging, and a periscope telephoto at an aggressive price.",
+    "source": "https://www.realme.com/global/realme-gt5-pro",
+    "shortSpecs": {
+      "display": "6.78\" 1.5K LTPO AMOLED, 144Hz",
+      "processor": "Qualcomm Snapdragon 8 Gen 3",
+      "memory": "12GB / 16GB LPDDR5X",
+      "storage": "256GB / 512GB / 1TB UFS 4.0",
+      "cameras": "50MP main (IMX890) + 50MP 3× periscope + 8MP ultrawide; 32MP front",
+      "battery": "5400mAh, 100W SuperVOOC, 50W wireless charging"
+    },
+    "highlights": [
+      "Iceberg Vapor Cooling System Max with 12000mm² VC",
+      "AI Night Vision video amplification",
+      "Stainless steel frame with vegan leather options"
+    ]
+  },
+  {
+    "brand": "nothing",
+    "model": "phone-2",
+    "name": "Nothing Phone (2)",
+    "releaseDate": "2023-07-17",
+    "price": {
+      "usd": 599,
+      "pkr": 184999
+    },
+    "summary": "Nothing builds on its transparent design with a Snapdragon 8+ Gen 1, Glyph lighting automations, and clean Nothing OS 2.0 software.",
+    "source": "https://nothing.tech/pages/phone-2",
+    "shortSpecs": {
+      "display": "6.7\" LTPO OLED, 120Hz, 2412×1080",
+      "processor": "Qualcomm Snapdragon 8+ Gen 1",
+      "memory": "8GB / 12GB LPDDR5",
+      "storage": "128GB / 256GB / 512GB UFS 3.1",
+      "cameras": "50MP main (IMX890) + 50MP ultrawide/macro; 32MP front",
+      "battery": "4700mAh, 45W wired, 15W Qi wireless, 5W reverse"
+    },
+    "highlights": [
+      "Glyph Interface automations for notifications and timers",
+      "Nothing OS 2.0 with customizable monochrome widgets",
+      "3 years Android updates + 4 years security patches"
+    ]
+  },
+  {
+    "brand": "motorola",
+    "model": "razr-40-ultra",
+    "name": "Motorola Razr 40 Ultra",
+    "releaseDate": "2023-06-01",
+    "price": {
+      "usd": 999,
+      "pkr": 309999
+    },
+    "summary": "Motorola’s flagship flip phone features the largest cover display in its class, paired with water-repellent design and Flex View software tricks.",
+    "source": "https://www.motorola.com/global/smartphones-razr-40-ultra/",
+    "shortSpecs": {
+      "display": "6.9\" FHD+ pOLED 165Hz inner + 3.6\" 144Hz cover",
+      "processor": "Qualcomm Snapdragon 8+ Gen 1",
+      "memory": "8GB / 12GB LPDDR5",
+      "storage": "256GB / 512GB UFS 3.1",
+      "cameras": "12MP OIS main + 13MP ultrawide; 32MP inner selfie",
+      "battery": "3800mAh, 30W wired, 5W wireless"
+    },
+    "highlights": [
+      "Flex View modes for hands-free selfies and video calls",
+      "IP52 water-repellent nanocoating",
+      "MyUX with native Ready For desktop streaming"
+    ]
+  },
+  {
+    "brand": "samsung",
+    "model": "galaxy-z-fold5",
+    "name": "Samsung Galaxy Z Fold5",
+    "releaseDate": "2023-08-11",
+    "price": {
+      "usd": 1799,
+      "pkr": 569999
+    },
+    "summary": "Samsung’s fifth-gen Fold refines the hinge for a gapless design, lighter chassis, and multitasking upgrades tuned for large screen productivity.",
+    "source": "https://www.samsung.com/global/galaxy/galaxy-z-fold5/",
+    "shortSpecs": {
+      "display": "7.6\" QXGA+ Dynamic AMOLED 2X 120Hz inner + 6.2\" HD+ 120Hz cover",
+      "processor": "Qualcomm Snapdragon 8 Gen 2 for Galaxy",
+      "memory": "12GB RAM",
+      "storage": "256GB / 512GB / 1TB UFS 4.0",
+      "cameras": "50MP main + 10MP 3× telephoto + 12MP ultrawide; 10MP cover selfie + 4MP under-display",
+      "battery": "4400mAh, 25W wired, 15W wireless, 4.5W reverse"
+    },
+    "highlights": [
+      "Flex hinge rated for 200k folds with IPX8 water resistance",
+      "Taskbar with app pairs and drag-and-drop copy between apps",
+      "S Pen Fold Edition support with dedicated cases"
+    ]
+  },
+  {
+    "brand": "xiaomi",
+    "model": "redmi-note-13-pro-plus",
+    "name": "Xiaomi Redmi Note 13 Pro+",
+    "releaseDate": "2023-09-21",
+    "price": {
+      "usd": 399,
+      "pkr": 129999
+    },
+    "summary": "A mid-range standout with a 200MP main camera, 120W HyperCharge, and curved AMOLED display—all while keeping Redmi pricing aggressive.",
+    "source": "https://www.mi.com/global/product/redmi-note-13-pro-plus-5g/",
+    "shortSpecs": {
+      "display": "6.67\" 1.5K AMOLED, 120Hz, 1800 nits peak",
+      "processor": "MediaTek Dimensity 7200-Ultra",
+      "memory": "8GB / 12GB LPDDR5",
+      "storage": "256GB / 512GB UFS 3.1",
+      "cameras": "200MP Samsung HP3 OIS main + 8MP ultrawide + 2MP macro; 16MP front",
+      "battery": "5000mAh, 120W wired (0-100% in 19 minutes)"
+    },
+    "highlights": [
+      "IP68 dust and water resistance—first for Redmi Note",
+      "In-display fingerprint sensor with heart-rate mode",
+      "MIUI 14 with promised HyperOS upgrade"
+    ]
+  },
+  {
+    "brand": "google",
+    "model": "pixel-8a",
+    "name": "Google Pixel 8a",
+    "releaseDate": "2024-05-14",
+    "price": {
+      "usd": 499,
+      "pkr": 159999
+    },
+    "summary": "Pixel 8a brings the Tensor G3, AI-smarts, and seven years of updates to an affordable package with a brighter 120Hz OLED display.",
+    "source": "https://store.google.com/product/pixel_8a",
+    "shortSpecs": {
+      "display": "6.1\" Actua OLED, 120Hz, 1080×2400",
+      "processor": "Google Tensor G3",
+      "memory": "8GB LPDDR5X",
+      "storage": "128GB / 256GB UFS 3.1",
+      "cameras": "64MP main + 13MP ultrawide; 13MP front",
+      "battery": "4492mAh, 18W wired, 7.5W Qi wireless"
+    },
+    "highlights": [
+      "Audio Magic Eraser and Best Take photography tools",
+      "Seven years of OS, Feature Drops, and security updates",
+      "IP67 rating with matte composite back and aluminum frame"
+    ]
+  },
+  {
+    "brand": "samsung",
+    "model": "galaxy-a55",
+    "name": "Samsung Galaxy A55 5G",
+    "releaseDate": "2024-03-15",
+    "price": {
+      "usd": 449,
+      "pkr": 144999
+    },
+    "summary": "Samsung’s mid-ranger adds an aluminum frame, IP67, and five years of security updates while keeping Knox-secured software.",
+    "source": "https://www.samsung.com/global/galaxy/galaxy-a55-5g/",
+    "shortSpecs": {
+      "display": "6.6\" FHD+ Super AMOLED, 120Hz",
+      "processor": "Samsung Exynos 1480 (4nm) with Xclipse 530 GPU",
+      "memory": "8GB / 12GB RAM",
+      "storage": "128GB / 256GB + microSD",
+      "cameras": "50MP OIS main + 12MP ultrawide + 5MP macro; 32MP front",
+      "battery": "5000mAh, 25W Super Fast Charging"
+    },
+    "highlights": [
+      "IP67 dust and water resistance with Gorilla Glass Victus+",
+      "Knox Vault hardware-backed security and Samsung Wallet",
+      "Four Android OS upgrades + five years security patches"
+    ]
+  }
+]
+

@@ -579,7 +579,6 @@ Vivo,V29e 185,126,12,512,200,4000,5.6,18,Yes,Android,Helio G99,3.7,April,2025
 Xiaomi,Redmi Note 14 Pro 931,380,8,64,48,5000,7.2,65,Yes,Android,Tensor G4,4.5,July,2025
 Vivo,Y100A 461,926,4,1024,12,4000,6.2,18,Yes,Android,Snapdragon 7+ Gen 2,3.6,November,2025
 Vivo,X100 Pro 34,1325,6,1024,200,5500,6.9,100,No,Android,Helio G99,3.8,April,2025
-Realme,Narzo 70 451,502,12,64,108,4500,6.2,65,No,Android,Exynos 2400,5,October,2025
 Google,Pixel 7a 892,501,12,128,48,5000,6.8,44,No,Android,Snapdragon 6 Gen 1,3.7,October,2025
 Realme,GT 7 Pro 979,631,4,128,48,5500,6,65,Yes,Android,Snapdragon 6 Gen 1,4.1,March,2025
 Oppo,Reno 11 294,770,12,1024,12,4500,5.9,120,No,Android,Snapdragon 7+ Gen 2,3.9,February,2025
@@ -715,20 +714,17 @@ Apple,iPhone 16 Pro 89,151,8,128,108,5500,6.3,44,Yes,iOS,Dimensity 9300,4.7,June
 Samsung,Galaxy S24 Ultra 469,218,12,256,108,4500,6.6,65,No,Android,Snapdragon 7+ Gen 2,4.4,June,2025
 Xiaomi,Mi 14 62,1309,12,256,50,5000,6.4,65,Yes,Android,Snapdragon 8 Gen 3,4.2,December,2025
 Vivo,V30 87,210,12,128,64,6000,6.6,18,Yes,Android,Exynos 2400,3.9,February,2025
-Realme,Narzo 70 335,179,8,512,108,5500,5.6,44,Yes,Android,Snapdragon 8 Gen 3,4.2,August,2025
 Realme,GT 7 Pro 522,1271,12,64,48,5500,6.7,100,No,Android,Exynos 2400,5,March,2025
 Apple,iPhone 15 752,922,4,1024,108,5500,7,65,No,iOS,Snapdragon 7+ Gen 2,4.4,November,2025
 OnePlus,Nord 4 794,833,12,256,108,5500,6.7,44,Yes,Android,Snapdragon 7+ Gen 2,5,April,2025
 OnePlus,Nord CE 4 Lite 147,1234,8,512,48,4000,6.2,100,No,Android,Snapdragon 8 Gen 3,4.9,September,2025
 Vivo,Y200 244,1397,6,128,48,6000,5.8,18,Yes,Android,Snapdragon 8 Gen 3,3.7,May,2025
 Apple,iPhone 16 Pro 231,183,8,128,64,6000,7.2,120,Yes,iOS,Snapdragon 6 Gen 1,4.3,July,2025
-Apple,iPhone 14 43,1058,6,64,48,5000,6.8,44,No,iOS,Snapdragon 8 Gen 3,3.5,July,2025
 Realme,Narzo 70 406,1320,6,64,50,4000,6.9,18,Yes,Android,Helio G99,3.7,February,2025
 Samsung,Galaxy S24 Ultra 403,655,16,128,64,5000,6.9,33,No,Android,Snapdragon 8 Gen 3,4.8,December,2025
 Vivo,V30 731,210,4,512,64,5000,6.2,44,Yes,Android,Tensor G4,3.9,December,2025
 Apple,iPhone 16 Pro 238,873,6,256,50,6000,6,33,Yes,iOS,A18 Pro,4.8,April,2025
 Xiaomi,Redmi Note 14 Pro 811,377,6,128,50,5500,7,44,Yes,Android,Dimensity 9300,4.3,July,2025
-OnePlus,Nord CE 4 Lite 268,897,6,128,200,6000,6,100,No,Android,Snapdragon 7+ Gen 2,4.8,June,2025
 OnePlus,Nord CE 4 Lite 608,644,4,512,48,6000,6.2,33,No,Android,Snapdragon 7+ Gen 2,4.7,June,2025
 Infinix,GT 20 Pro 529,297,4,1024,108,4500,6,120,Yes,Android,Helio G99,4,January,2025
 Vivo,X100 Pro 537,189,8,512,12,5000,6.8,18,No,Android,Dimensity 9300,4.1,December,2025
@@ -738,7 +734,6 @@ Oppo,F27 Pro 502,1498,6,512,12,5000,6.6,65,Yes,Android,A18 Pro,4.7,September,202
 Xiaomi,Poco X6 Pro 224,460,16,128,12,4500,6.4,44,No,Android,Snapdragon 6 Gen 1,4.3,May,2025
 Vivo,X100 Pro 84,638,6,64,48,6000,7.2,18,Yes,Android,Helio G99,4,October,2025
 Oppo,Reno 11 674,197,8,256,64,4500,6.9,120,No,Android,A18 Pro,4.5,February,2025
-Samsung,Galaxy S24 Ultra 700,1349,12,1024,200,5500,5.9,100,Yes,Android,Dimensity 9300,5,May,2025
 Samsung,Galaxy Z Fold6 921,774,4,128,200,6000,6.4,33,No,Android,Tensor G4,4.7,February,2025
 Realme,11 Pro+ 103,1351,12,512,200,6000,6.5,65,Yes,Android,Tensor G4,4.6,December,2025
 Infinix,Zero 30 566,1410,4,128,64,4000,7.1,18,Yes,Android,Snapdragon 7+ Gen 2,4.4,November,2025
@@ -754,7 +749,6 @@ Xiaomi,Mi 13 Ultra 708,1229,8,64,48,5000,6.3,18,Yes,Android,A18 Pro,3.7,December
 Apple,iPhone 16 Pro 772,139,4,64,50,4500,5.9,120,No,iOS,Snapdragon 6 Gen 1,4,September,2025
 Apple,iPhone 16 Pro Max 598,154,12,64,108,4000,6.4,65,Yes,iOS,Dimensity 9300,3.8,January,2025
 Realme,GT Neo 6 201,408,12,512,108,5500,6.4,65,No,Android,Snapdragon 7+ Gen 2,4.3,May,2025
-Apple,iPhone 14 583,633,4,128,12,4500,6.9,120,Yes,iOS,Snapdragon 6 Gen 1,4.1,July,2025
 Realme,C65 162,939,12,512,200,5500,6.5,100,Yes,Android,Snapdragon 7+ Gen 2,5,October,2025
 OnePlus,OnePlus 13R 705,327,6,512,108,5000,6.7,65,Yes,Android,A18 Pro,4.3,October,2025
 Apple,iPhone 14 91,853,8,512,50,4000,6.1,18,No,iOS,Snapdragon 7+ Gen 2,3.7,June,2025
@@ -889,9 +883,7 @@ Vivo,X100 Pro 296,271,8,128,108,6000,6.9,65,Yes,Android,Tensor G4,4.2,August,202
 Xiaomi,Redmi Note 14 Pro 291,560,6,1024,50,6000,6.9,33,No,Android,Tensor G4,3.8,April,2025
 Apple,iPhone 16 Pro 121,731,16,64,64,5500,6.8,100,No,iOS,Exynos 2400,4.6,May,2025
 Oppo,Reno 12 338,1083,4,128,50,4000,5.7,18,Yes,Android,Helio G99,4.4,January,2025
-Infinix,Note 40 Pro 443,1292,6,64,108,5000,6.6,120,Yes,Android,Tensor G4,4.1,December,2025
 Vivo,Y200 619,231,16,1024,48,5000,5.9,100,No,Android,Snapdragon 7+ Gen 2,4.1,January,2025
-Samsung,Galaxy S24 591,1045,12,256,48,4500,5.5,33,Yes,Android,Dimensity 9300,4,August,2025
 Samsung,Galaxy A75 788,986,16,64,108,4000,5.9,33,No,Android,A18 Pro,3.9,January,2025
 Vivo,V29e 299,1267,4,512,108,5000,6.7,18,No,Android,Dimensity 9300,4.7,September,2025
 Oppo,F27 Pro 353,135,8,256,50,5500,6.7,44,No,Android,Tensor G4,4.2,July,2025

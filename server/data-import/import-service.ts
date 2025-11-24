@@ -1,12 +1,22 @@
 import { RapidAPIService } from './rapidapi-service.js';
 import { DataTransformer } from './data-transformer.js';
 import { storage } from '../storage.js';
+import { MobileAPIService, MobileAPIDevice } from './mobileapi-service.js';
+import { MobileAPITransformer } from './mobileapi-transformer.js';
 
 export class ImportService {
   private rapidApi: RapidAPIService;
+  private mobileApi?: MobileAPIService;
 
   constructor() {
     this.rapidApi = new RapidAPIService();
+    if (process.env.MOBILEAPI_KEY) {
+      try {
+        this.mobileApi = new MobileAPIService();
+      } catch (error) {
+        console.warn('MobileAPI.dev integration unavailable:', error);
+      }
+    }
   }
 
   async importBrands(): Promise<{ success: number; errors: string[] }> {
@@ -47,6 +57,10 @@ export class ImportService {
   }
 
   async importLatestMobiles(limit: number = 50): Promise<{ success: number; errors: string[]; existing: number; processed: number }> {
+    if (this.mobileApi) {
+      return this.importLatestMobilesFromMobileAPI(limit);
+    }
+
     console.log(`Starting import of up to ${limit} latest mobiles from RapidAPI...`);
     const results = { success: 0, errors: [] as string[], existing: 0, processed: 0 };
 
@@ -104,6 +118,10 @@ export class ImportService {
   }
 
   async importMobilesByBrand(brandName: string, limit: number = 20): Promise<{ success: number; errors: string[] }> {
+    if (this.mobileApi) {
+      return this.importMobilesByBrandFromMobileAPI(brandName, limit);
+    }
+
     console.log(`Starting import of up to ${limit} mobiles for brand: ${brandName}...`);
     const results = { success: 0, errors: [] as string[] };
 
@@ -145,6 +163,15 @@ export class ImportService {
   }
 
   async importPopularBrands(): Promise<{ success: number; errors: string[] }> {
+    if (this.mobileApi) {
+      console.log('MobileAPI.dev integration active; importing latest devices instead of predefined popular brands.');
+      const latestResults = await this.importLatestMobilesFromMobileAPI(50);
+      return {
+        success: latestResults.success,
+        errors: latestResults.errors,
+      };
+    }
+
     console.log('Starting import of popular brands...');
     const popularBrands = ['Apple', 'Samsung', 'Xiaomi', 'OnePlus', 'Google', 'Oppo', 'Vivo'];
     const results = { success: 0, errors: [] as string[] };
@@ -169,6 +196,10 @@ export class ImportService {
   }
 
   async searchAndImportMobiles(query: string, limit: number = 10): Promise<{ success: number; errors: string[] }> {
+    if (this.mobileApi) {
+      return this.searchAndImportMobilesFromMobileAPI(query, limit);
+    }
+
     console.log(`Starting search and import for query: "${query}"...`);
     const results = { success: 0, errors: [] as string[] };
 
@@ -238,5 +269,146 @@ export class ImportService {
       totalMobiles: mobiles.length,
       lastImport: new Date().toISOString()
     };
+  }
+
+  private async ensureBrand(device: MobileAPIDevice) {
+    const transformedBrand = MobileAPITransformer.transformBrand(device);
+    const existingBrand = await storage.getBrandBySlug(transformedBrand.slug);
+
+    if (!existingBrand) {
+      await storage.createBrand(transformedBrand);
+      return { created: true, slug: transformedBrand.slug };
+    }
+
+    return { created: false, slug: transformedBrand.slug, id: existingBrand.id };
+  }
+
+  private async upsertMobile(device: MobileAPIDevice) {
+    const transformedMobile = MobileAPITransformer.transformDevice(device);
+    const existingMobile = await storage.getMobileBySlug(transformedMobile.brand, transformedMobile.slug);
+
+    if (existingMobile) {
+      await storage.updateMobile(existingMobile.id, transformedMobile);
+      return { created: false, slug: transformedMobile.slug };
+    }
+
+    await storage.createMobile(transformedMobile);
+    return { created: true, slug: transformedMobile.slug };
+  }
+
+  private async importLatestMobilesFromMobileAPI(limit: number) {
+    if (!this.mobileApi) {
+      throw new Error('MobileAPI.dev integration is not configured. Set MOBILEAPI_KEY environment variable.');
+    }
+
+    console.log(`Starting import of latest ${limit} mobiles from MobileAPI.dev...`);
+    const results = { success: 0, errors: [] as string[], existing: 0, processed: 0 };
+
+    try {
+      const devices = await this.mobileApi.listLatest(limit);
+      console.log(`Fetched ${devices.length} devices from MobileAPI.dev`);
+
+      for (const device of devices) {
+        try {
+          await this.ensureBrand(device);
+          const outcome = await this.upsertMobile(device);
+          results.processed++;
+          if (outcome.created) {
+            results.success++;
+            console.log(`✓ Imported mobile: ${device.name}`);
+          } else {
+            results.existing++;
+            console.log(`- Updated existing mobile: ${device.name}`);
+          }
+        } catch (error: any) {
+          const message = error?.message ?? String(error);
+          results.errors.push(`Failed to import ${device.name}: ${message}`);
+          console.error(`⚠️  Failed to import ${device.name}:`, message);
+        }
+      }
+    } catch (error: any) {
+      const message = error?.message ?? String(error);
+      results.errors.push(`Failed to fetch latest devices: ${message}`);
+      console.error('MobileAPI.dev latest import failed:', message);
+    }
+
+    console.log(`MobileAPI.dev import completed. Success: ${results.success}, Existing: ${results.existing}, Errors: ${results.errors.length}`);
+    return results;
+  }
+
+  private async importMobilesByBrandFromMobileAPI(brandName: string, limit: number) {
+    if (!this.mobileApi) {
+      throw new Error('MobileAPI.dev integration is not configured. Set MOBILEAPI_KEY environment variable.');
+    }
+
+    console.log(`Starting MobileAPI.dev import for brand: ${brandName} (limit ${limit})...`);
+    const results = { success: 0, errors: [] as string[] };
+
+    try {
+      const devices = await this.mobileApi.listDevicesByBrand(brandName, limit);
+      console.log(`Fetched ${devices.length} devices for ${brandName} from MobileAPI.dev`);
+
+      for (const device of devices) {
+        try {
+          await this.ensureBrand(device);
+          const outcome = await this.upsertMobile(device);
+          if (outcome.created) {
+            results.success++;
+            console.log(`✓ Imported ${device.name}`);
+          } else {
+            console.log(`- Updated existing ${device.name}`);
+          }
+        } catch (error: any) {
+          const message = error?.message ?? String(error);
+          results.errors.push(`Failed to import ${device.name}: ${message}`);
+          console.error(`⚠️  Failed to import ${device.name}:`, message);
+        }
+      }
+    } catch (error: any) {
+      const message = error?.message ?? String(error);
+      results.errors.push(`Failed to fetch devices for brand ${brandName}: ${message}`);
+      console.error(`MobileAPI.dev brand import failed for ${brandName}:`, message);
+    }
+
+    console.log(`MobileAPI.dev brand import completed. Success: ${results.success}, Errors: ${results.errors.length}`);
+    return results;
+  }
+
+  private async searchAndImportMobilesFromMobileAPI(query: string, limit: number) {
+    if (!this.mobileApi) {
+      throw new Error('MobileAPI.dev integration is not configured. Set MOBILEAPI_KEY environment variable.');
+    }
+
+    console.log(`Searching MobileAPI.dev for "${query}" (limit ${limit})...`);
+    const results = { success: 0, errors: [] as string[] };
+
+    try {
+      const devices = await this.mobileApi.searchDevices(query, limit);
+      console.log(`Found ${devices.length} matching devices on MobileAPI.dev`);
+
+      for (const device of devices) {
+        try {
+          await this.ensureBrand(device);
+          const outcome = await this.upsertMobile(device);
+          if (outcome.created) {
+            results.success++;
+            console.log(`✓ Imported ${device.name}`);
+          } else {
+            console.log(`- Updated existing ${device.name}`);
+          }
+        } catch (error: any) {
+          const message = error?.message ?? String(error);
+          results.errors.push(`Failed to import ${device.name}: ${message}`);
+          console.error(`⚠️  Failed to import ${device.name}:`, message);
+        }
+      }
+    } catch (error: any) {
+      const message = error?.message ?? String(error);
+      results.errors.push(`Failed to search devices for query "${query}": ${message}`);
+      console.error(`MobileAPI.dev search import failed for "${query}":`, message);
+    }
+
+    console.log(`MobileAPI.dev search import completed. Success: ${results.success}, Errors: ${results.errors.length}`);
+    return results;
   }
 }

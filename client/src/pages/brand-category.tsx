@@ -8,6 +8,8 @@ import { SEOHead } from "@/components/seo/seo-head";
 import { RichMetaTags } from "@/components/seo/meta-tags";
 import { generateCollectionPageSchema, generateBreadcrumbSchema, generateOrganizationSchema } from "@/components/seo/structured-data";
 import { MobileCard } from "@/components/mobile/mobile-card";
+import { LastUpdated } from "@/components/seo/last-updated";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import type { Brand, Mobile } from "@shared/schema";
@@ -162,7 +164,7 @@ export default function BrandCategory() {
   return (
     <>
       <SEOHead 
-        title={`${brand?.name || brandSlug} Mobile Phones Price in Pakistan 2025 - Latest Models & Specifications`}
+        title={`${brand?.name || brandSlug} Mobile Price in Pakistan (Updated 2025) – ${brand?.name || brandSlug}`}
         description={`Latest ${brand?.name || brandSlug} mobile phone prices in Pakistan. Compare ${mobiles?.length || 0}+ models with detailed specifications, camera reviews, and performance analysis. Updated 2025.`}
         canonical={`/${brandSlug}`}
         jsonLd={combinedSchema}
@@ -181,7 +183,7 @@ export default function BrandCategory() {
                 <span className="text-2xl font-bold text-gray-600">{brand?.logo}</span>
               </div>
               <div>
-                <h1 className="text-3xl font-bold text-gray-900">{brand?.name} Mobile Phones</h1>
+                <h1 className="text-3xl font-bold text-gray-900">{brand?.name || brandSlug} Mobile Price in Pakistan (Updated 2025)</h1>
                 <p className="text-gray-600">{totalBrandMobiles} models available</p>
               </div>
             </div>
@@ -190,6 +192,10 @@ export default function BrandCategory() {
                 {brand.description}
               </p>
             )}
+            {/* Last Updated Date */}
+            <div className="mt-4">
+              <LastUpdated />
+            </div>
           </div>
 
           {/* Filters */}
@@ -320,6 +326,92 @@ export default function BrandCategory() {
             <div className="text-center py-12">
               <p className="text-gray-500 text-lg">No mobiles found for {brand?.name}</p>
             </div>
+          )}
+
+          {/* FAQ Section for Brand Category */}
+          {brand && mobiles && mobiles.length > 0 && (
+            <section className="mt-12 mb-8">
+              <h2 className="text-2xl font-bold text-gray-900 mb-6">Frequently Asked Questions</h2>
+              <div className="space-y-4">
+                <Card>
+                  <CardHeader className="pb-3">
+                    <CardTitle className="text-lg text-gray-900">
+                      What is the latest {brand.name} mobile price in Pakistan?
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-gray-700">
+                      The latest {brand.name} mobile prices in Pakistan range from budget-friendly options under ₨50,000 to premium flagship devices above ₨150,000. Browse our complete list to find the exact price for any {brand.name} model.
+                    </p>
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardHeader className="pb-3">
+                    <CardTitle className="text-lg text-gray-900">
+                      How many {brand.name} mobile models are available in Pakistan?
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-gray-700">
+                      Currently, there are {totalBrandMobiles} {brand.name} mobile models available in Pakistan. This includes budget, mid-range, and flagship devices to suit different needs and budgets.
+                    </p>
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardHeader className="pb-3">
+                    <CardTitle className="text-lg text-gray-900">
+                      Where can I buy {brand.name} mobile phones in Pakistan?
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-gray-700">
+                      {brand.name} mobile phones are available across Pakistan through authorized dealers, major electronics stores, and online retailers. Popular platforms include Daraz, Shophive, and local mobile markets in Karachi, Lahore, and Islamabad.
+                    </p>
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardHeader className="pb-3">
+                    <CardTitle className="text-lg text-gray-900">
+                      Which {brand.name} mobile is best for budget buyers?
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-gray-700">
+                      For budget-conscious buyers, {brand.name} offers several options under ₨50,000 with excellent features. Use our price filter to view budget-friendly {brand.name} models and compare their specifications.
+                    </p>
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardHeader className="pb-3">
+                    <CardTitle className="text-lg text-gray-900">
+                      Are {brand.name} mobile prices updated regularly?
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-gray-700">
+                      Yes, we regularly update {brand.name} mobile prices to reflect the latest market rates in Pakistan. Prices are checked daily to ensure accuracy, though actual prices may vary slightly by retailer.
+                    </p>
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardHeader className="pb-3">
+                    <CardTitle className="text-lg text-gray-900">
+                      What is the price range for {brand.name} phones in Pakistan?
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-gray-700">
+                      {brand.name} mobile prices in Pakistan range from budget-friendly options under ₨50,000 to premium flagship devices above ₨150,000. Use our filters to explore phones in your preferred price range.
+                    </p>
+                  </CardContent>
+                </Card>
+              </div>
+            </section>
           )}
         </main>
 

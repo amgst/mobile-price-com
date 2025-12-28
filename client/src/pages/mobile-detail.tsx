@@ -8,6 +8,9 @@ import { RichMetaTags } from "@/components/seo/meta-tags";
 import { generateProductSchema, generateBreadcrumbSchema, generateFAQSchema } from "@/components/seo/structured-data";
 import { generateOGImageUrl } from "@/lib/seo-utils";
 import { TechnicalHighlights, PriceAnalysis, FrequentlyAskedQuestions, ComparisonSuggestions, ExpertReview } from "@/components/seo/rich-content";
+import { ComparisonTable } from "@/components/seo/comparison-table";
+import { InternalLinks } from "@/components/seo/internal-links";
+import { LastUpdated } from "@/components/seo/last-updated";
 import { MobileHero } from "@/components/mobile/mobile-hero";
 import { SpecsTable } from "@/components/mobile/specs-table";
 import { ImageGallery } from "@/components/mobile/image-gallery";
@@ -89,7 +92,7 @@ export default function MobileDetail() {
   return (
     <>
       <SEOHead 
-        title={`${mobile.name} Price in Pakistan, Full Specifications & Review (2025)`}
+        title={`${mobile.name} Price in Pakistan (Updated 2025) – ${mobile.brand}`}
         description={`${mobile.name} price in Pakistan is ${mobile.price}. Complete specifications: ${mobile.shortSpecs.ram} RAM, ${mobile.shortSpecs.storage} storage, ${mobile.shortSpecs.camera} camera. Expert review and comparison.`}
         canonical={`/${brandSlug}/${mobileSlug}`}
         ogImage={generateOGImageUrl(mobile)}
@@ -132,6 +135,11 @@ export default function MobileDetail() {
 
           {/* Mobile Hero Section */}
           <MobileHero mobile={mobile} />
+          
+          {/* Last Updated Date */}
+          <div className="mb-6">
+            <LastUpdated date={mobile.createdAt} />
+          </div>
 
           {/* Technical Highlights - Rich Content */}
           <TechnicalHighlights mobile={mobile} />
@@ -181,8 +189,14 @@ export default function MobileDetail() {
             </section>
           )}
 
+          {/* Comparison Table - SEO Rich Content */}
+          <ComparisonTable mobile={mobile} relatedMobiles={relatedMobiles} />
+
           {/* Comparison Suggestions - Rich Content */}
           <ComparisonSuggestions mobile={mobile} relatedMobiles={relatedMobiles} />
+
+          {/* Internal Links - SEO Boost */}
+          <InternalLinks mobile={mobile} relatedMobiles={relatedMobiles} />
 
           {/* Frequently Asked Questions - Rich Content */}
           <FrequentlyAskedQuestions mobile={mobile} />

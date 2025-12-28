@@ -107,23 +107,31 @@ export function FrequentlyAskedQuestions({ mobile }: RichContentProps) {
   const faqs = [
     {
       question: `What is the current price of ${mobile.name} in Pakistan?`,
-      answer: `The ${mobile.name} is currently priced at ${mobile.price} in Pakistan. Prices may vary slightly between different retailers and cities.`
+      answer: `The ${mobile.name} is currently priced at ${mobile.price} in Pakistan. Prices may vary slightly between different retailers and cities. For the most accurate pricing, we recommend checking with local retailers or authorized dealers.`
     },
     {
       question: `What are the key features of ${mobile.name}?`,
-      answer: `Key features include ${mobile.shortSpecs.ram} RAM, ${mobile.shortSpecs.storage} storage, ${mobile.shortSpecs.camera} camera system, and ${mobile.shortSpecs.battery || 'advanced battery technology'}.`
+      answer: `Key features include ${mobile.shortSpecs.ram} RAM, ${mobile.shortSpecs.storage} storage, ${mobile.shortSpecs.camera} camera system, and ${mobile.shortSpecs.battery || 'advanced battery technology'}. The device runs on the latest Android/iOS operating system and offers excellent performance for daily use.`
     },
     {
       question: `Is ${mobile.name} worth buying in 2025?`,
-      answer: `${mobile.name} offers excellent value with modern features and reliable performance. It's a solid choice for users looking for ${mobile.shortSpecs.ram} RAM and ${mobile.shortSpecs.camera} camera capabilities.`
+      answer: `${mobile.name} offers excellent value with modern features and reliable performance. It's a solid choice for users looking for ${mobile.shortSpecs.ram} RAM and ${mobile.shortSpecs.camera} camera capabilities. The device provides good performance-to-price ratio in the Pakistani market.`
     },
     {
       question: `Where can I buy ${mobile.name} in Pakistan?`,
-      answer: `You can purchase ${mobile.name} from authorized ${mobile.brand} dealers, major electronics stores, and reputable online retailers across Pakistan.`
+      answer: `You can purchase ${mobile.name} from authorized ${mobile.brand} dealers, major electronics stores, and reputable online retailers across Pakistan. Popular stores include Daraz, Shophive, and local mobile markets in major cities like Karachi, Lahore, and Islamabad.`
     },
     {
       question: `Does ${mobile.name} support 5G?`,
-      answer: `Please check the detailed specifications for network connectivity information. Most modern smartphones including ${mobile.name} support advanced network technologies.`
+      answer: `Please check the detailed specifications for network connectivity information. Most modern smartphones including ${mobile.name} support advanced network technologies. For 5G support specifically, refer to the network specifications section on this page.`
+    },
+    {
+      question: `What is the battery life of ${mobile.name}?`,
+      answer: `The ${mobile.name} features ${mobile.shortSpecs.battery || 'a high-capacity battery'} that provides excellent battery life for daily use. With normal usage including calls, browsing, and social media, you can expect a full day of battery life. Battery performance may vary based on usage patterns and settings.`
+    },
+    {
+      question: `How much RAM and storage does ${mobile.name} have?`,
+      answer: `The ${mobile.name} comes with ${mobile.shortSpecs.ram} RAM and ${mobile.shortSpecs.storage} internal storage. This configuration provides smooth multitasking and ample space for apps, photos, videos, and other files. The device offers excellent performance for most daily tasks and entertainment needs.`
     }
   ];
 

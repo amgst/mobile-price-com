@@ -179,7 +179,7 @@ export function generateFAQSchema(mobile: any): FAQSchema {
         name: `What is the price of ${mobile.name} in Pakistan?`,
         acceptedAnswer: {
           "@type": "Answer",
-          text: `The current price of ${mobile.name} in Pakistan is ${mobile.price}. This price may vary depending on the retailer and availability.`
+          text: `The current price of ${mobile.name} in Pakistan is ${mobile.price}. Prices may vary slightly between different retailers and cities. For the most accurate pricing, we recommend checking with local retailers or authorized dealers.`
         }
       },
       {
@@ -187,23 +187,47 @@ export function generateFAQSchema(mobile: any): FAQSchema {
         name: `What are the key specifications of ${mobile.name}?`,
         acceptedAnswer: {
           "@type": "Answer",
-          text: `${mobile.name} features ${mobile.shortSpecs?.ram} RAM, ${mobile.shortSpecs?.storage} internal storage, ${mobile.shortSpecs?.camera} camera system, and ${mobile.shortSpecs?.battery || 'advanced'} battery technology.`
+          text: `${mobile.name} features ${mobile.shortSpecs?.ram} RAM, ${mobile.shortSpecs?.storage} internal storage, ${mobile.shortSpecs?.camera} camera system, and ${mobile.shortSpecs?.battery || 'advanced'} battery technology. The device runs on the latest Android/iOS operating system and offers excellent performance for daily use.`
         }
       },
       {
         "@type": "Question",
-        name: `When was ${mobile.name} released?`,
+        name: `Is ${mobile.name} worth buying in 2025?`,
         acceptedAnswer: {
           "@type": "Answer",
-          text: `${mobile.name} was released in ${mobile.releaseDate}.`
+          text: `${mobile.name} offers excellent value with modern features and reliable performance. It's a solid choice for users looking for ${mobile.shortSpecs?.ram} RAM and ${mobile.shortSpecs?.camera} camera capabilities. The device provides good performance-to-price ratio in the Pakistani market.`
         }
       },
       {
         "@type": "Question",
-        name: `Is ${mobile.name} available in Pakistan?`,
+        name: `Where can I buy ${mobile.name} in Pakistan?`,
         acceptedAnswer: {
           "@type": "Answer",
-          text: `Yes, ${mobile.name} is available in Pakistan through various retailers and online stores.`
+          text: `You can purchase ${mobile.name} from authorized ${mobile.brand} dealers, major electronics stores, and reputable online retailers across Pakistan. Popular stores include Daraz, Shophive, and local mobile markets in major cities like Karachi, Lahore, and Islamabad.`
+        }
+      },
+      {
+        "@type": "Question",
+        name: `Does ${mobile.name} support 5G?`,
+        acceptedAnswer: {
+          "@type": "Answer",
+          text: `Please check the detailed specifications for network connectivity information. Most modern smartphones including ${mobile.name} support advanced network technologies. For 5G support specifically, refer to the network specifications section on this page.`
+        }
+      },
+      {
+        "@type": "Question",
+        name: `What is the battery life of ${mobile.name}?`,
+        acceptedAnswer: {
+          "@type": "Answer",
+          text: `The ${mobile.name} features ${mobile.shortSpecs?.battery || 'a high-capacity battery'} that provides excellent battery life for daily use. With normal usage including calls, browsing, and social media, you can expect a full day of battery life. Battery performance may vary based on usage patterns and settings.`
+        }
+      },
+      {
+        "@type": "Question",
+        name: `How much RAM and storage does ${mobile.name} have?`,
+        acceptedAnswer: {
+          "@type": "Answer",
+          text: `The ${mobile.name} comes with ${mobile.shortSpecs?.ram} RAM and ${mobile.shortSpecs?.storage} internal storage. This configuration provides smooth multitasking and ample space for apps, photos, videos, and other files. The device offers excellent performance for most daily tasks and entertainment needs.`
         }
       }
     ]

@@ -144,7 +144,7 @@ export function MobileHero({ mobile }: MobileHeroProps) {
               <div className="mb-4">
                 <Badge className="mb-2">{mobile.brand}</Badge>
               </div>
-              <h1 className="text-3xl font-bold text-gray-900 mb-2">{mobile.name}</h1>
+              <h1 className="text-3xl font-bold text-gray-900 mb-2">{mobile.name} Price in Pakistan (Updated 2025)</h1>
               <div className="text-4xl font-bold text-green-600 mb-6" data-testid="mobile-price">
                 {mobile.price}
               </div>

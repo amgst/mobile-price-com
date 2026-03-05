@@ -1,4 +1,5 @@
 // Image optimization utilities for mobile phone images
+import { getProductImageUrl } from "@/lib/product-image";
 
 export interface ImageOptions {
   quality?: 'low' | 'medium' | 'high';
@@ -11,12 +12,13 @@ export class ImageUtils {
   // Generate optimized GSMArena image URLs
   static getOptimizedUrl(originalUrl: string, options: ImageOptions = {}): string {
     const { quality = 'high', width, height } = options;
+    const resolvedUrl = getProductImageUrl(originalUrl);
     
-    if (!originalUrl.includes('gsmarena.com')) {
-      return originalUrl;
+    if (!resolvedUrl.includes('gsmarena.com')) {
+      return resolvedUrl;
     }
 
-    let optimizedUrl = originalUrl;
+    let optimizedUrl = resolvedUrl;
 
     // Quality optimization
     switch (quality) {

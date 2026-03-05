@@ -7,7 +7,10 @@ interface ImageGalleryProps {
 }
 
 export function ImageGallery({ images, alt }: ImageGalleryProps) {
-  if (!images || images.length === 0) {
+  const uniqueImages = Array.from(new Set((images || []).filter(Boolean)));
+
+  // Don't render gallery for a single image.
+  if (uniqueImages.length <= 1) {
     return null;
   }
 
@@ -15,8 +18,11 @@ export function ImageGallery({ images, alt }: ImageGalleryProps) {
     <Card data-testid="image-gallery">
       <CardContent className="p-6">
         <div className="space-y-4">
-          {images.map((image, index) => (
-            <div key={index} className="bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-900 rounded-lg shadow-inner">
+          {uniqueImages.map((image, index) => (
+            <div
+              key={index}
+              className="aspect-[4/3] md:aspect-video bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-900 rounded-lg shadow-inner p-3"
+            >
               <SafeImage
                 src={image}
                 alt={`${alt} image ${index + 1}`}

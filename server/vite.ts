@@ -20,6 +20,13 @@ export function log(message: string, source = "express") {
 }
 
 export async function setupVite(app: Express, server: Server) {
+  // Serve repository-level public assets in development (e.g. /public/products/*)
+  // before Vite middlewares so local product images resolve correctly.
+  const repoPublicPath = path.resolve(import.meta.dirname, "..", "public");
+  if (fs.existsSync(repoPublicPath)) {
+    app.use(express.static(repoPublicPath));
+  }
+
   const serverOptions = {
     middlewareMode: true,
     hmr: { server },

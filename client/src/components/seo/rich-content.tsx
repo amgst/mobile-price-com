@@ -1,6 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Star, Calendar, Smartphone, Camera, Battery, Cpu, HardDrive, Wifi } from "lucide-react";
+import { getProductImageUrl, PRODUCT_IMAGE_PLACEHOLDER_DATA_URI } from "@/lib/product-image";
 import type { Mobile } from "@shared/schema";
 
 interface RichContentProps {
@@ -170,9 +171,15 @@ export function ComparisonSuggestions({ mobile, relatedMobiles }: RichContentPro
             <CardContent className="p-4">
               <div className="flex items-center space-x-3 mb-3">
                 <img 
-                  src={suggestion.imageUrl} 
+                  src={getProductImageUrl(suggestion.imageUrl)}
                   alt={suggestion.name}
                   className="w-12 h-12 object-cover rounded"
+                  onError={(e) => {
+                    const target = e.currentTarget;
+                    if (target.src !== PRODUCT_IMAGE_PLACEHOLDER_DATA_URI) {
+                      target.src = PRODUCT_IMAGE_PLACEHOLDER_DATA_URI;
+                    }
+                  }}
                 />
                 <div>
                   <h3 className="font-semibold text-gray-900 text-sm">{suggestion.name}</h3>

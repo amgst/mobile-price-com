@@ -14,6 +14,51 @@ import {
 } from "./jwt-auth-middleware.js";
 import { z } from "zod";
 
+function mapDatabaseError(error: any, fallbackMessage: string) {
+  const root = error?.cause ?? error;
+  const code = (root?.code ?? error?.code) as string | undefined;
+  const detail = (root?.detail ?? error?.detail) as string | undefined;
+  const rawMessage = (root?.message ?? error?.message) as string | undefined;
+
+  if (code === "23505") {
+    const constraint = (error?.constraint as string | undefined) || "";
+    if (constraint.includes("slug")) {
+      return { status: 409, message: "Slug already exists. Please use a unique slug." };
+    }
+    return { status: 409, message: "Duplicate value detected. Please use unique values." };
+  }
+
+  if (code === "23502") {
+    const columnMatch = rawMessage?.match(/column "([^"]+)"/i);
+    const column = columnMatch?.[1] || "field";
+    return { status: 400, message: `Missing required field: ${column}` };
+  }
+
+  if (code === "42P01") {
+    return {
+      status: 500,
+      message: "Database table not found. Run `npm run db:push` to create/update schema.",
+    };
+  }
+
+  if (code === "42703") {
+    return {
+      status: 500,
+      message: "Database schema mismatch. Run `npm run db:push` to update schema.",
+    };
+  }
+
+  if (detail) {
+    return { status: 400, message: detail };
+  }
+
+  if (rawMessage) {
+    return { status: 500, message: rawMessage };
+  }
+
+  return { status: 500, message: fallbackMessage };
+}
+
 export async function registerRoutes(app: Express): Promise<Server> {
   // Auth routes (public)
   app.post("/api/auth/login", handleJWTLogin);
@@ -145,7 +190,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (error instanceof z.ZodError) {
         return res.status(400).json({ message: "Invalid mobile data", errors: error.errors });
       }
-      res.status(500).json({ message: "Failed to create mobile" });
+      console.error("Failed to create mobile:", error);
+      const mapped = mapDatabaseError(error, "Failed to create mobile");
+      res.status(mapped.status).json({ message: mapped.message });
     }
   });
 
@@ -238,7 +285,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (error instanceof z.ZodError) {
         return res.status(400).json({ message: "Invalid mobile data", errors: error.errors });
       }
-      res.status(500).json({ message: "Failed to update mobile" });
+      console.error("Failed to update mobile:", error);
+      const mapped = mapDatabaseError(error, "Failed to update mobile");
+      res.status(mapped.status).json({ message: mapped.message });
     }
   });
 

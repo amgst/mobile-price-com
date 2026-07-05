@@ -12,6 +12,7 @@ import {
   handleJWTLogout, 
   checkJWTAuthStatus 
 } from "./jwt-auth-middleware.js";
+import { importScheduler } from "./data-import/scheduler.js";
 import { z } from "zod";
 
 function mapDatabaseError(error: any, fallbackMessage: string) {
@@ -60,6 +61,12 @@ function mapDatabaseError(error: any, fallbackMessage: string) {
 }
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  // Start daily mobile data import scheduler in production
+  if (process.env.NODE_ENV === 'production') {
+    console.log('🚀 Starting daily mobile data import scheduler...');
+    importScheduler.startDailyImports();
+  }
+
   // Auth routes (public)
   app.post("/api/auth/login", handleJWTLogin);
   app.post("/api/auth/logout", handleJWTLogout);
@@ -273,6 +280,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Import status failed:", error);
       res.status(500).json({ message: "Failed to get import status", error: error instanceof Error ? error.message : "Unknown error" });
+    }
+  });
+
+  // Get scheduler status
+  app.get("/api/admin/scheduler/status", async (req, res) => {
+    try {
+      const status = importScheduler.getStatus();
+      res.json({
+        isRunning: status.isRunning,
+        nextRun: status.nextRun,
+        environment: process.env.NODE_ENV,
+        message: status.isRunning ? "Daily scheduler is active and will import 20 latest mobiles daily" : "Daily scheduler is not running"
+      });
+    } catch (error) {
+      console.error("Scheduler status check failed:", error);
+      res.status(500).json({ message: "Failed to get scheduler status" });
     }
   });
 

@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useLocation } from "wouter";
 import { Header } from "@/components/layout/header";
@@ -7,6 +7,7 @@ import { Breadcrumbs } from "@/components/layout/breadcrumbs";
 import { SEOHead } from "@/components/seo/seo-head";
 import { MobileCard } from "@/components/mobile/mobile-card";
 import { Button } from "@/components/ui/button";
+import { PRICE_RANGES } from "@/data/mobiles";
 import type { Mobile } from "@shared/schema";
 
 export default function Mobiles() {
@@ -15,8 +16,17 @@ export default function Mobiles() {
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(20);
 
+  // Price filtering/sorting is done server-side against the real numeric
+  // price_pkr column, not by regex-parsing the free-text price string.
+  const priceQuery =
+    filter === 'all'
+      ? ''
+      : `?priceMin=${PRICE_RANGES[filter].min}${
+          Number.isFinite(PRICE_RANGES[filter].max) ? `&priceMax=${PRICE_RANGES[filter].max}` : ''
+        }`;
+
   const { data: mobiles, isLoading } = useQuery<Mobile[]>({
-    queryKey: ["/api/mobiles"],
+    queryKey: [`/api/mobiles${priceQuery}`],
   });
 
   useEffect(() => {
@@ -53,35 +63,7 @@ export default function Mobiles() {
     }
   };
 
-  const filteredMobiles = useMemo(() => {
-    if (!mobiles) return [];
-    
-    const getPrice = (mobile: Mobile) => {
-      const price = mobile.price;
-      if (typeof price === 'string') return parseInt(price.replace(/[^0-9]/g, '')) || 0;
-      return price || 0;
-    };
-    
-    switch (filter) {
-      case 'budget':
-        return mobiles.filter(m => {
-          const price = getPrice(m);
-          return price > 0 && price < 50000;
-        });
-      case 'midrange':
-        return mobiles.filter(m => {
-          const price = getPrice(m);
-          return price >= 50000 && price <= 150000;
-        });
-      case 'flagship':
-        return mobiles.filter(m => {
-          const price = getPrice(m);
-          return price > 150000;
-        });
-      default:
-        return mobiles;
-    }
-  }, [mobiles, filter]);
+  const filteredMobiles = mobiles ?? [];
 
   // Reset to page 1 when filter changes
   useEffect(() => {

@@ -145,20 +145,50 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Mobiles API
   app.get("/api/mobiles", async (req, res) => {
     try {
-      const { brand, featured, search } = req.query;
-      
-      let mobiles;
-      if (brand) {
-        mobiles = await storage.getMobilesByBrand(brand as string);
-      } else if (featured === "true") {
-        mobiles = await storage.getFeaturedMobiles();
-      } else if (search) {
-        mobiles = await storage.searchMobiles(search as string);
-      } else {
-        mobiles = await storage.getAllMobiles();
+      const { brand, featured, search, priceMin, priceMax, sort, limit, offset } = req.query;
+
+      if (featured === "true") {
+        const items = await storage.getFeaturedMobiles();
+        return res.json(items);
       }
-      
-      res.json(mobiles);
+
+      const parsedPriceMin = priceMin !== undefined ? parseInt(priceMin as string, 10) : undefined;
+      const parsedPriceMax = priceMax !== undefined ? parseInt(priceMax as string, 10) : undefined;
+      const parsedLimit = limit !== undefined ? parseInt(limit as string, 10) : undefined;
+      const parsedOffset = offset !== undefined ? parseInt(offset as string, 10) : undefined;
+      const allowedSorts = ["price_asc", "price_desc", "newest", "oldest"] as const;
+      const parsedSort = allowedSorts.includes(sort as any) ? (sort as (typeof allowedSorts)[number]) : undefined;
+
+      // No filter/sort/pagination params requested: preserve the original
+      // "return everything" behavior relied on by several client pages.
+      if (
+        !brand &&
+        !search &&
+        parsedPriceMin === undefined &&
+        parsedPriceMax === undefined &&
+        !parsedSort &&
+        parsedLimit === undefined &&
+        parsedOffset === undefined
+      ) {
+        return res.json(await storage.getAllMobiles());
+      }
+
+      const result = await storage.getMobilesFiltered({
+        brandSlug: brand as string | undefined,
+        search: search as string | undefined,
+        priceMin: Number.isNaN(parsedPriceMin as number) ? undefined : parsedPriceMin,
+        priceMax: Number.isNaN(parsedPriceMax as number) ? undefined : parsedPriceMax,
+        sort: parsedSort,
+        limit: Number.isNaN(parsedLimit as number) ? undefined : parsedLimit,
+        offset: Number.isNaN(parsedOffset as number) ? undefined : parsedOffset,
+      });
+
+      // Keep the response shape a bare array for backward compatibility with
+      // existing consumers (admin, AI components, sitemap page, etc.) that
+      // expect Mobile[]. Callers that need the total count for pagination
+      // can read the X-Total-Count header.
+      res.setHeader("X-Total-Count", String(result.total));
+      res.json(result.items);
     } catch (error) {
       res.status(500).json({ message: "Failed to fetch mobiles" });
     }

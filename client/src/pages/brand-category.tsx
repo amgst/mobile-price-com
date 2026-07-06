@@ -17,11 +17,11 @@ import type { Brand, Mobile } from "@shared/schema";
 type PriceFilter = "all" | "budget" | "mid" | "premium";
 type SortOption = "newest" | "price-low" | "price-high" | "popular";
 
-const getNumericPrice = (price: Mobile["price"]) => {
-  if (!price) return 0;
-  if (typeof price === "number") return price;
-  const numeric = parseInt(price.replace(/[^0-9]/g, ""), 10);
-  return Number.isNaN(numeric) ? 0 : numeric;
+// Reads the numeric price_pkr column (populated by scripts/backfill-spec-columns.js)
+// instead of regex-parsing the free-text price string, which misparses fabricated
+// "(Est.)" ranges and foreign-currency values into meaningless numbers.
+const getNumericPrice = (mobile: Mobile) => {
+  return mobile.pricePkr ?? 0;
 };
 
 const getReleaseYear = (mobile: Mobile) => {
@@ -81,7 +81,7 @@ export default function BrandCategory() {
 
     if (priceFilter !== "all") {
       result = result.filter((mobile) => {
-        const price = getNumericPrice(mobile.price);
+        const price = getNumericPrice(mobile);
         if (price === 0) return false;
         if (priceFilter === "budget") return price < 50000;
         if (priceFilter === "mid") return price >= 50000 && price <= 150000;
@@ -97,10 +97,10 @@ export default function BrandCategory() {
     const sorted = [...result];
     switch (sortOption) {
       case "price-low":
-        sorted.sort((a, b) => getNumericPrice(a.price) - getNumericPrice(b.price));
+        sorted.sort((a, b) => getNumericPrice(a) - getNumericPrice(b));
         break;
       case "price-high":
-        sorted.sort((a, b) => getNumericPrice(b.price) - getNumericPrice(a.price));
+        sorted.sort((a, b) => getNumericPrice(b) - getNumericPrice(a));
         break;
       case "popular":
         sorted.sort((a, b) => {

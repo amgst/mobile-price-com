@@ -1,6 +1,7 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import express from 'express';
 import { registerRoutes } from '../server/routes.js';
+import { registerSeoPageRoutes } from '../server/seo-render.js';
 
 // Create Express app for Vercel
 const app = express();
@@ -16,6 +17,10 @@ async function initializeRoutes() {
   if (!routesRegistered) {
     try {
       await registerRoutes(app);
+      // Catch-all: serves the built index.html with server-injected SEO tags
+      // for phone/brand pages. Must be registered last so it never shadows
+      // the /api/* routes above.
+      registerSeoPageRoutes(app);
       routesRegistered = true;
       console.log('Routes registered successfully for Vercel');
     } catch (error) {

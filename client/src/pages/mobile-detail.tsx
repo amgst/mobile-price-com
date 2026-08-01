@@ -41,6 +41,8 @@ export default function MobileDetail() {
     { label: mobile?.name || mobileSlug || "", href: `/${brandSlug}/${mobileSlug}`, isActive: true }
   ];
 
+  const uniqueGalleryImages = Array.from(new Set((mobile?.carouselImages || []).filter(Boolean)));
+
   if (isLoading) {
     return (
       <div className="min-h-screen bg-gray-50">
@@ -148,10 +150,12 @@ export default function MobileDetail() {
           <PriceAnalysis mobile={mobile} />
 
           {/* Image Gallery */}
-          <section className="mb-12">
-            <h2 className="text-2xl font-bold text-gray-900 mb-6">Gallery</h2>
-            <ImageGallery images={mobile.carouselImages} alt={mobile.name} />
-          </section>
+          {uniqueGalleryImages.length > 1 && (
+            <section className="mb-12">
+              <h2 className="text-2xl font-bold text-gray-900 mb-6">Gallery</h2>
+              <ImageGallery images={uniqueGalleryImages} alt={mobile.name} />
+            </section>
+          )}
 
           {/* Expert Review - Rich Content */}
           <ExpertReview mobile={mobile} />

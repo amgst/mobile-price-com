@@ -9,27 +9,33 @@ const slugify = (value: string) =>
     .replace(/-+/g, "-")
     .replace(/^-|-$/g, "");
 
+// PKR fields are checked before USD ones since this is a Pakistan-focused
+// site; each field is paired with its actual currency so the returned
+// string is labeled correctly instead of always being stamped "USD $".
 const parsePrice = (device: MobileAPIDevice): string => {
-  const priceFields = [
-    device.price?.usd,
-    device.prices?.USD,
-    device.prices?.usd,
-    device.price?.pkr,
-    device.prices?.PKR,
-    device.prices?.pkr,
+  const priceFields: { value: number | string | undefined; currency: "PKR" | "USD" }[] = [
+    { value: device.price?.pkr, currency: "PKR" },
+    { value: device.prices?.PKR, currency: "PKR" },
+    { value: device.prices?.pkr, currency: "PKR" },
+    { value: device.price?.usd, currency: "USD" },
+    { value: device.prices?.USD, currency: "USD" },
+    { value: device.prices?.usd, currency: "USD" },
   ];
 
-  for (const entry of priceFields) {
-    if (entry === undefined || entry === null) continue;
-    if (typeof entry === "number") {
-      return `USD $${entry.toFixed(2)}`;
-    }
-    const numeric = Number(String(entry).replace(/[^0-9.]/g, ""));
+  for (const { value, currency } of priceFields) {
+    if (value === undefined || value === null) continue;
+
+    const numeric =
+      typeof value === "number" ? value : Number(String(value).replace(/[^0-9.]/g, ""));
+
     if (!Number.isNaN(numeric) && numeric > 0) {
-      return `USD $${numeric.toFixed(2)}`;
+      return currency === "PKR"
+        ? `Rs ${Math.round(numeric).toLocaleString("en-US")}`
+        : `USD $${numeric.toFixed(2)}`;
     }
-    if (typeof entry === "string" && entry.trim()) {
-      return entry.trim();
+
+    if (typeof value === "string" && value.trim()) {
+      return value.trim();
     }
   }
 

@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { Image, ImageOff, Smartphone } from "lucide-react";
+import { getProductImageUrl, PRODUCT_IMAGE_PLACEHOLDER_DATA_URI } from "@/lib/product-image";
 
 interface SafeImageProps {
   src: string | string[];
@@ -39,8 +40,8 @@ export function SafeImage({
   const [isLoading, setIsLoading] = useState(true);
   const [failedUrls, setFailedUrls] = useState<Set<string>>(new Set());
 
-  // Convert src to array for fallback handling
-  const srcArray = Array.isArray(src) ? src : [src];
+  // Convert src to array for fallback handling and resolve relative product filenames
+  const srcArray = (Array.isArray(src) ? src : [src]).map((url) => getProductImageUrl(url));
   
   // Add local fallback images to avoid CORS/ORB issues
   const brandFallbacks = [
@@ -48,7 +49,7 @@ export function SafeImage({
     '/images/og-default.jpg'
   ];
 
-  const allSources = [...srcArray, ...brandFallbacks];
+  const allSources = [...srcArray, ...brandFallbacks, PRODUCT_IMAGE_PLACEHOLDER_DATA_URI];
 
   // Initialize with first available source
   useEffect(() => {

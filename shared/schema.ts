@@ -1,5 +1,5 @@
 import { sql } from "drizzle-orm";
-import { pgTable, text, varchar, jsonb, timestamp, boolean } from "drizzle-orm/pg-core";
+import { pgTable, text, varchar, jsonb, timestamp, boolean, integer, numeric, index } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -24,6 +24,12 @@ export const mobiles = pgTable("mobiles", {
   imagekitPath: text("imagekit_path"),
   releaseDate: text("release_date").notNull(),
   price: text("price"),
+  ramGb: integer("ram_gb"),
+  storageGb: integer("storage_gb"),
+  batteryMah: integer("battery_mah"),
+  screenInches: numeric("screen_inches", { precision: 4, scale: 2 }),
+  pricePkr: integer("price_pkr"),
+  launchYear: integer("launch_year"),
   shortSpecs: jsonb("short_specs").$type<{
     ram: string;
     storage: string;
@@ -49,7 +55,11 @@ export const mobiles = pgTable("mobiles", {
     protection: string;
   }>(),
   createdAt: timestamp("created_at").defaultNow(),
-});
+}, (table) => ({
+  brandIdx: index("mobiles_brand_idx").on(table.brand),
+  pricePkrIdx: index("mobiles_price_pkr_idx").on(table.pricePkr),
+  launchYearIdx: index("mobiles_launch_year_idx").on(table.launchYear),
+}));
 
 export const insertBrandSchema = createInsertSchema(brands).omit({
   id: true,

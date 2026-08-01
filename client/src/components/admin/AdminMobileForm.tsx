@@ -1,8 +1,9 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useForm, useFieldArray } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
+import { getProductImageUrl } from "@/lib/product-image";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -23,7 +24,16 @@ interface AdminMobileFormProps {
 }
 
 const formSchema = insertMobileSchema.extend({
-  carouselImages: z.array(z.string().url("Must be a valid URL")).min(1, "At least one image is required"),
+  carouselImages: z.array(
+    z.string().min(1, "Image is required").refine((value) => {
+      const v = value.trim();
+      if (!v) return false;
+      if (v.startsWith("http://") || v.startsWith("https://")) return true;
+      if (v.startsWith("/")) return true;
+      if (v.startsWith("products/")) return true;
+      return /^[a-zA-Z0-9][a-zA-Z0-9_\-./ ]*\.(png|jpg|jpeg|webp|gif|svg)$/i.test(v);
+    }, "Use a valid image URL or filename (e.g., mobile.png, /products/mobile.png)")
+  ).min(1, "At least one image is required"),
   specifications: z.array(z.object({
     category: z.string().min(1, "Category is required"),
     specs: z.array(z.object({
@@ -35,11 +45,55 @@ const formSchema = insertMobileSchema.extend({
 
 type FormData = z.infer<typeof formSchema>;
 
+function collectErrorMessages(errors: any, path: string[] = []): string[] {
+  if (!errors || typeof errors !== "object") return [];
+
+  const messages: string[] = [];
+
+  if (typeof errors.message === "string") {
+    const label = path.length ? `${path.join(".")}: ` : "";
+    messages.push(`${label}${errors.message}`);
+  }
+
+  for (const [key, value] of Object.entries(errors)) {
+    if (key === "message" || key === "type" || key === "ref") continue;
+    messages.push(...collectErrorMessages(value, [...path, key]));
+  }
+
+  return messages;
+}
+
+function parseApiErrorMessage(error: any): string {
+  const fallback = "Failed to save mobile";
+  const raw = typeof error?.message === "string" ? error.message : "";
+
+  if (!raw) return fallback;
+
+  const jsonPartStart = raw.indexOf("{");
+  if (jsonPartStart === -1) return raw;
+
+  try {
+    const parsed = JSON.parse(raw.slice(jsonPartStart));
+    if (Array.isArray(parsed?.errors) && parsed.errors.length > 0) {
+      const details = parsed.errors
+        .map((e: any) => e?.message)
+        .filter(Boolean)
+        .slice(0, 3)
+        .join(", ");
+      if (details) return `${parsed.message || "Validation error"}: ${details}`;
+    }
+    return parsed?.message || raw;
+  } catch {
+    return raw;
+  }
+}
+
 export function AdminMobileForm({ mobile, brands, onSuccess }: AdminMobileFormProps) {
   const { toast } = useToast();
   const [currentImageUrl, setCurrentImageUrl] = useState("");
   const [currentSpecFeature, setCurrentSpecFeature] = useState("");
   const [currentSpecValue, setCurrentSpecValue] = useState("");
+  const [slugManuallyEdited, setSlugManuallyEdited] = useState(!!mobile);
 
   const form = useForm<FormData>({
     resolver: zodResolver(formSchema),
@@ -100,10 +154,29 @@ export function AdminMobileForm({ mobile, brands, onSuccess }: AdminMobileFormPr
     name: "specifications",
   });
 
+  const watchedName = form.watch("name");
+
+  useEffect(() => {
+    if (slugManuallyEdited || mobile) return;
+
+    const generatedSlug = (watchedName || "")
+      .toLowerCase()
+      .trim()
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/^-+|-+$/g, "");
+
+    form.setValue("slug", generatedSlug, {
+      shouldValidate: true,
+      shouldDirty: true,
+    });
+  }, [watchedName, slugManuallyEdited, mobile, form]);
+
   const mutation = useMutation({
     mutationFn: async (data: FormData) => {
       const cleanData = {
         ...data,
+        imageUrl: getProductImageUrl(data.imageUrl),
+        carouselImages: (data.carouselImages || []).map((img) => getProductImageUrl(img)),
         dimensions: data.dimensions?.height ? data.dimensions : null,
         buildMaterials: data.buildMaterials?.frame ? data.buildMaterials : null,
         shortSpecs: {
@@ -130,7 +203,7 @@ export function AdminMobileForm({ mobile, brands, onSuccess }: AdminMobileFormPr
         });
       }
     },
-    onSuccess: () => {
+      onSuccess: () => {
       toast({
         title: "Success",
         description: `Mobile ${mobile ? "updated" : "created"} successfully`,
@@ -140,7 +213,8 @@ export function AdminMobileForm({ mobile, brands, onSuccess }: AdminMobileFormPr
     onError: (error: any) => {
       toast({
         title: "Error",
-        description: error.message || `Failed to ${mobile ? "update" : "create"} mobile`,
+        description:
+          parseApiErrorMessage(error) || `Failed to ${mobile ? "update" : "create"} mobile`,
         variant: "destructive",
       });
     },
@@ -148,6 +222,20 @@ export function AdminMobileForm({ mobile, brands, onSuccess }: AdminMobileFormPr
 
   const onSubmit = (data: FormData) => {
     mutation.mutate(data);
+  };
+
+  const onInvalidSubmit = (errors: any) => {
+    const messages = collectErrorMessages(errors);
+    const summary =
+      messages.length > 0
+        ? messages.slice(0, 3).join(" | ")
+        : "Please fill all required fields before saving";
+
+    toast({
+      title: "Missing required fields",
+      description: summary,
+      variant: "destructive",
+    });
   };
 
   const addCarouselImage = () => {
@@ -223,7 +311,7 @@ export function AdminMobileForm({ mobile, brands, onSuccess }: AdminMobileFormPr
         onSpecsGenerated={handleSpecsGenerated}
       />
 
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+      <form onSubmit={form.handleSubmit(onSubmit, onInvalidSubmit)} className="space-y-6">
         {/* Basic Information */}
       <Card>
         <CardHeader>
@@ -251,6 +339,9 @@ export function AdminMobileForm({ mobile, brands, onSuccess }: AdminMobileFormPr
                 placeholder="e.g., Galaxy S24 Ultra"
                 data-testid="input-mobile-model"
               />
+              {form.formState.errors.model && (
+                <p className="text-sm text-red-500 mt-1">{form.formState.errors.model.message}</p>
+              )}
             </div>
           </div>
 
@@ -259,7 +350,7 @@ export function AdminMobileForm({ mobile, brands, onSuccess }: AdminMobileFormPr
               <Label htmlFor="brand">Brand</Label>
               <Select
                 value={form.watch("brand")}
-                onValueChange={(value) => form.setValue("brand", value)}
+                onValueChange={(value) => form.setValue("brand", value, { shouldValidate: true, shouldDirty: true })}
               >
                 <SelectTrigger data-testid="select-mobile-brand">
                   <SelectValue placeholder="Select a brand" />
@@ -272,15 +363,28 @@ export function AdminMobileForm({ mobile, brands, onSuccess }: AdminMobileFormPr
                   ))}
                 </SelectContent>
               </Select>
+              {form.formState.errors.brand && (
+                <p className="text-sm text-red-500 mt-1">{form.formState.errors.brand.message}</p>
+              )}
             </div>
             <div>
               <Label htmlFor="slug">Slug</Label>
               <Input
                 id="slug"
                 {...form.register("slug")}
+                onChange={(e) => {
+                  setSlugManuallyEdited(true);
+                  form.setValue("slug", e.target.value, {
+                    shouldValidate: true,
+                    shouldDirty: true,
+                  });
+                }}
                 placeholder="e.g., galaxy-s24-ultra"
                 data-testid="input-mobile-slug"
               />
+              {form.formState.errors.slug && (
+                <p className="text-sm text-red-500 mt-1">{form.formState.errors.slug.message}</p>
+              )}
             </div>
           </div>
 
@@ -302,17 +406,23 @@ export function AdminMobileForm({ mobile, brands, onSuccess }: AdminMobileFormPr
                 {...form.register("releaseDate")}
                 data-testid="input-mobile-release-date"
               />
+              {form.formState.errors.releaseDate && (
+                <p className="text-sm text-red-500 mt-1">{form.formState.errors.releaseDate.message}</p>
+              )}
             </div>
           </div>
 
           <div>
-            <Label htmlFor="imageUrl">Main Image URL</Label>
+            <Label htmlFor="imageUrl">Image (URL or Filename)</Label>
             <Input
               id="imageUrl"
               {...form.register("imageUrl")}
-              placeholder="https://example.com/image.jpg"
+              placeholder="https://example.com/image.jpg or /products/phone.jpg or phone.jpg"
               data-testid="input-mobile-image-url"
             />
+            {form.formState.errors.imageUrl && (
+              <p className="text-sm text-red-500 mt-1">{form.formState.errors.imageUrl.message}</p>
+            )}
           </div>
 
           <div>
@@ -342,6 +452,9 @@ export function AdminMobileForm({ mobile, brands, onSuccess }: AdminMobileFormPr
                 placeholder="e.g., 12GB"
                 data-testid="input-mobile-ram"
               />
+              {form.formState.errors.shortSpecs?.ram && (
+                <p className="text-sm text-red-500 mt-1">{form.formState.errors.shortSpecs.ram.message}</p>
+              )}
             </div>
             <div>
               <Label htmlFor="storage">Storage</Label>
@@ -351,6 +464,9 @@ export function AdminMobileForm({ mobile, brands, onSuccess }: AdminMobileFormPr
                 placeholder="e.g., 256GB"
                 data-testid="input-mobile-storage"
               />
+              {form.formState.errors.shortSpecs?.storage && (
+                <p className="text-sm text-red-500 mt-1">{form.formState.errors.shortSpecs.storage.message}</p>
+              )}
             </div>
           </div>
 
@@ -362,6 +478,9 @@ export function AdminMobileForm({ mobile, brands, onSuccess }: AdminMobileFormPr
               placeholder="e.g., 200MP + 50MP + 10MP + 12MP"
               data-testid="input-mobile-camera"
             />
+            {form.formState.errors.shortSpecs?.camera && (
+              <p className="text-sm text-red-500 mt-1">{form.formState.errors.shortSpecs.camera.message}</p>
+            )}
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -402,11 +521,16 @@ export function AdminMobileForm({ mobile, brands, onSuccess }: AdminMobileFormPr
           <CardTitle>Carousel Images</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
+          {(form.formState.errors.carouselImages as any)?.message && (
+            <p className="text-sm text-red-500">
+              {(form.formState.errors.carouselImages as any).message}
+            </p>
+          )}
           <div className="flex gap-2">
             <Input
               value={currentImageUrl}
               onChange={(e) => setCurrentImageUrl(e.target.value)}
-              placeholder="Enter image URL"
+              placeholder="Enter image URL or filename (e.g., mobile.png)"
               data-testid="input-carousel-url"
             />
             <Button
@@ -458,6 +582,11 @@ export function AdminMobileForm({ mobile, brands, onSuccess }: AdminMobileFormPr
           </div>
         </CardHeader>
         <CardContent className="space-y-4">
+          {(form.formState.errors.specifications as any)?.message && (
+            <p className="text-sm text-red-500">
+              {(form.formState.errors.specifications as any).message}
+            </p>
+          )}
           {specFields.map((field, categoryIndex) => (
             <Card key={field.id}>
               <CardHeader>

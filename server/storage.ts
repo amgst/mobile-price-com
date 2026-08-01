@@ -1,6 +1,18 @@
 import { type User, type InsertUser, type Brand, type InsertBrand, type Mobile, type InsertMobile, type UsedListing, type InsertUsedListing, users, brands, mobiles, usedListings } from "../shared/schema.js";
-import { eq, ilike, or, and, sql, desc } from "drizzle-orm";
+import { eq, ilike, or, and, gte, lte, asc, desc, sql, type SQL } from "drizzle-orm";
 import { db } from "./db.js";
+
+export type MobileSort = "price_asc" | "price_desc" | "newest" | "oldest";
+
+export interface MobileFilterParams {
+  brandSlug?: string;
+  search?: string;
+  priceMin?: number;
+  priceMax?: number;
+  sort?: MobileSort;
+  limit?: number;
+  offset?: number;
+}
 
 export interface IStorage {
   getUser(id: string): Promise<User | undefined>;
@@ -21,6 +33,7 @@ export interface IStorage {
   getMobileBySlug(brandSlug: string, mobileSlug: string): Promise<Mobile | undefined>;
   searchMobiles(query: string): Promise<Mobile[]>;
   getFeaturedMobiles(): Promise<Mobile[]>;
+  getMobilesFiltered(params: MobileFilterParams): Promise<{ items: Mobile[]; total: number }>;
   createMobile(mobile: InsertMobile): Promise<Mobile>;
   updateMobile(id: string, mobile: Partial<InsertMobile>): Promise<Mobile>;
   deleteMobile(id: string): Promise<void>;
@@ -347,6 +360,69 @@ export class DatabaseStorage implements IStorage {
   async getFeaturedMobiles(): Promise<Mobile[]> {
     await this.ensureInitialized();
     return await db.select().from(mobiles).limit(8);
+  }
+
+  async getMobilesFiltered(params: MobileFilterParams): Promise<{ items: Mobile[]; total: number }> {
+    await this.ensureInitialized();
+
+    const conditions: SQL[] = [];
+
+    if (params.brandSlug) {
+      conditions.push(eq(mobiles.brand, params.brandSlug));
+    }
+
+    if (params.search && params.search.trim()) {
+      const searchTerm = `%${params.search.trim()}%`;
+      conditions.push(
+        or(
+          ilike(mobiles.name, searchTerm),
+          ilike(mobiles.brand, searchTerm),
+          ilike(mobiles.model, searchTerm),
+        )!,
+      );
+    }
+
+    if (typeof params.priceMin === "number") {
+      conditions.push(gte(mobiles.pricePkr, params.priceMin));
+    }
+
+    if (typeof params.priceMax === "number") {
+      conditions.push(lte(mobiles.pricePkr, params.priceMax));
+    }
+
+    const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
+
+    const orderBy = (() => {
+      switch (params.sort) {
+        case "price_asc":
+          return asc(mobiles.pricePkr);
+        case "price_desc":
+          return desc(mobiles.pricePkr);
+        case "oldest":
+          return asc(mobiles.launchYear);
+        case "newest":
+        default:
+          return desc(mobiles.launchYear);
+      }
+    })();
+
+    let query = db.select().from(mobiles).where(whereClause).orderBy(orderBy).$dynamic();
+    if (typeof params.limit === "number") {
+      query = query.limit(params.limit);
+    }
+    if (typeof params.offset === "number") {
+      query = query.offset(params.offset);
+    }
+
+    const [items, countResult] = await Promise.all([
+      query,
+      db
+        .select({ count: sql<string>`CAST(COUNT(*) AS TEXT)` })
+        .from(mobiles)
+        .where(whereClause),
+    ]);
+
+    return { items, total: parseInt(countResult[0]?.count ?? "0", 10) };
   }
 
   async createMobile(mobile: InsertMobile): Promise<Mobile> {

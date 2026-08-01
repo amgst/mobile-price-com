@@ -4,6 +4,7 @@ import { Footer } from "@/components/layout/footer";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Star, ThumbsUp, MessageCircle } from "lucide-react";
+import { getProductImageUrl, PRODUCT_IMAGE_PLACEHOLDER_DATA_URI } from "@/lib/product-image";
 
 function ReviewsPage() {
   const featuredReviews = [
@@ -83,9 +84,15 @@ function ReviewsPage() {
                     <div className="md:flex">
                       <div className="md:w-48 md:h-32 bg-gray-200">
                         <img 
-                          src={review.image} 
+                          src={getProductImageUrl(review.image)}
                           alt={review.title}
                           className="w-full h-full object-cover"
+                          onError={(e) => {
+                            const target = e.currentTarget;
+                            if (target.src !== PRODUCT_IMAGE_PLACEHOLDER_DATA_URI) {
+                              target.src = PRODUCT_IMAGE_PLACEHOLDER_DATA_URI;
+                            }
+                          }}
                         />
                       </div>
                       <CardContent className="flex-1 p-6">

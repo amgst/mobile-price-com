@@ -13,9 +13,61 @@ import {
   handleJWTLogout, 
   checkJWTAuthStatus 
 } from "./jwt-auth-middleware.js";
+import { importScheduler } from "./data-import/scheduler.js";
 import { z } from "zod";
 
+function mapDatabaseError(error: any, fallbackMessage: string) {
+  const root = error?.cause ?? error;
+  const code = (root?.code ?? error?.code) as string | undefined;
+  const detail = (root?.detail ?? error?.detail) as string | undefined;
+  const rawMessage = (root?.message ?? error?.message) as string | undefined;
+
+  if (code === "23505") {
+    const constraint = (error?.constraint as string | undefined) || "";
+    if (constraint.includes("slug")) {
+      return { status: 409, message: "Slug already exists. Please use a unique slug." };
+    }
+    return { status: 409, message: "Duplicate value detected. Please use unique values." };
+  }
+
+  if (code === "23502") {
+    const columnMatch = rawMessage?.match(/column "([^"]+)"/i);
+    const column = columnMatch?.[1] || "field";
+    return { status: 400, message: `Missing required field: ${column}` };
+  }
+
+  if (code === "42P01") {
+    return {
+      status: 500,
+      message: "Database table not found. Run `npm run db:push` to create/update schema.",
+    };
+  }
+
+  if (code === "42703") {
+    return {
+      status: 500,
+      message: "Database schema mismatch. Run `npm run db:push` to update schema.",
+    };
+  }
+
+  if (detail) {
+    return { status: 400, message: detail };
+  }
+
+  if (rawMessage) {
+    return { status: 500, message: rawMessage };
+  }
+
+  return { status: 500, message: fallbackMessage };
+}
+
 export async function registerRoutes(app: Express): Promise<Server> {
+  // Start daily mobile data import scheduler in production
+  if (process.env.NODE_ENV === 'production') {
+    console.log('🚀 Starting daily mobile data import scheduler...');
+    importScheduler.startDailyImports();
+  }
+
   // Auth routes (public)
   app.post("/api/auth/login", handleJWTLogin);
   app.post("/api/auth/logout", handleJWTLogout);
@@ -94,20 +146,50 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Mobiles API
   app.get("/api/mobiles", async (req, res) => {
     try {
-      const { brand, featured, search } = req.query;
-      
-      let mobiles;
-      if (brand) {
-        mobiles = await storage.getMobilesByBrand(brand as string);
-      } else if (featured === "true") {
-        mobiles = await storage.getFeaturedMobiles();
-      } else if (search) {
-        mobiles = await storage.searchMobiles(search as string);
-      } else {
-        mobiles = await storage.getAllMobiles();
+      const { brand, featured, search, priceMin, priceMax, sort, limit, offset } = req.query;
+
+      if (featured === "true") {
+        const items = await storage.getFeaturedMobiles();
+        return res.json(items);
       }
-      
-      res.json(mobiles);
+
+      const parsedPriceMin = priceMin !== undefined ? parseInt(priceMin as string, 10) : undefined;
+      const parsedPriceMax = priceMax !== undefined ? parseInt(priceMax as string, 10) : undefined;
+      const parsedLimit = limit !== undefined ? parseInt(limit as string, 10) : undefined;
+      const parsedOffset = offset !== undefined ? parseInt(offset as string, 10) : undefined;
+      const allowedSorts = ["price_asc", "price_desc", "newest", "oldest"] as const;
+      const parsedSort = allowedSorts.includes(sort as any) ? (sort as (typeof allowedSorts)[number]) : undefined;
+
+      // No filter/sort/pagination params requested: preserve the original
+      // "return everything" behavior relied on by several client pages.
+      if (
+        !brand &&
+        !search &&
+        parsedPriceMin === undefined &&
+        parsedPriceMax === undefined &&
+        !parsedSort &&
+        parsedLimit === undefined &&
+        parsedOffset === undefined
+      ) {
+        return res.json(await storage.getAllMobiles());
+      }
+
+      const result = await storage.getMobilesFiltered({
+        brandSlug: brand as string | undefined,
+        search: search as string | undefined,
+        priceMin: Number.isNaN(parsedPriceMin as number) ? undefined : parsedPriceMin,
+        priceMax: Number.isNaN(parsedPriceMax as number) ? undefined : parsedPriceMax,
+        sort: parsedSort,
+        limit: Number.isNaN(parsedLimit as number) ? undefined : parsedLimit,
+        offset: Number.isNaN(parsedOffset as number) ? undefined : parsedOffset,
+      });
+
+      // Keep the response shape a bare array for backward compatibility with
+      // existing consumers (admin, AI components, sitemap page, etc.) that
+      // expect Mobile[]. Callers that need the total count for pagination
+      // can read the X-Total-Count header.
+      res.setHeader("X-Total-Count", String(result.total));
+      res.json(result.items);
     } catch (error) {
       res.status(500).json({ message: "Failed to fetch mobiles" });
     }
@@ -146,7 +228,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (error instanceof z.ZodError) {
         return res.status(400).json({ message: "Invalid mobile data", errors: error.errors });
       }
-      res.status(500).json({ message: "Failed to create mobile" });
+      console.error("Failed to create mobile:", error);
+      const mapped = mapDatabaseError(error, "Failed to create mobile");
+      res.status(mapped.status).json({ message: mapped.message });
     }
   });
 
@@ -230,6 +314,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get scheduler status
+  app.get("/api/admin/scheduler/status", async (req, res) => {
+    try {
+      const status = importScheduler.getStatus();
+      res.json({
+        isRunning: status.isRunning,
+        nextRun: status.nextRun,
+        environment: process.env.NODE_ENV,
+        message: status.isRunning ? "Daily scheduler is active and will import 20 latest mobiles daily" : "Daily scheduler is not running"
+      });
+    } catch (error) {
+      console.error("Scheduler status check failed:", error);
+      res.status(500).json({ message: "Failed to get scheduler status" });
+    }
+  });
+
   app.put("/api/admin/mobiles/:id", async (req, res) => {
     try {
       const mobileData = insertMobileSchema.partial().parse(req.body);
@@ -239,7 +339,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (error instanceof z.ZodError) {
         return res.status(400).json({ message: "Invalid mobile data", errors: error.errors });
       }
-      res.status(500).json({ message: "Failed to update mobile" });
+      console.error("Failed to update mobile:", error);
+      const mapped = mapDatabaseError(error, "Failed to update mobile");
+      res.status(mapped.status).json({ message: mapped.message });
     }
   });
 

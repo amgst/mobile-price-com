@@ -6,7 +6,7 @@ import { registerSitemapRoutes } from "./sitemap-routes.js";
 import { registerExportRoutes } from "./export-routes.js";
 import { insertBrandSchema, insertMobileSchema, insertUsedListingSchema } from "../shared/schema.js";
 import { aiService } from "./ai-service.js";
-import { createPresignedUpload } from "./r2.js";
+import { createPresignedUpload, uploadBufferToR2 } from "./r2.js";
 import { 
   requireJWTAuth, 
   handleJWTLogin, 
@@ -414,6 +414,50 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(listings);
     } catch (error) {
       res.status(500).json({ message: "Failed to fetch listings" });
+    }
+  });
+
+  // Admin-created listing (published immediately, no moderation queue)
+  app.post("/api/admin/listings", async (req, res) => {
+    try {
+      const listingData = insertUsedListingSchema.parse(req.body);
+      const listing = await storage.createUsedListing(listingData);
+      const published = await storage.updateUsedListingStatus(listing.id, "approved");
+      res.status(201).json(published);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid listing data", errors: error.errors });
+      }
+      res.status(500).json({ message: "Failed to create listing" });
+    }
+  });
+
+  // AI-assisted listing description
+  app.post("/api/admin/ai/listing-description", async (req, res) => {
+    try {
+      const { brand, model, condition, price, city } = req.body || {};
+      if (!brand || !model || !condition) {
+        return res.status(400).json({ message: "brand, model, and condition are required" });
+      }
+      const description = await aiService.generateListingDescription({ brand, model, condition, price, city });
+      res.json({ description });
+    } catch (error: any) {
+      res.status(500).json({ message: error.message || "Failed to generate description" });
+    }
+  });
+
+  // AI-generated listing photo
+  app.post("/api/admin/ai/listing-image", async (req, res) => {
+    try {
+      const { brand, model, condition } = req.body || {};
+      if (!brand || !model || !condition) {
+        return res.status(400).json({ message: "brand, model, and condition are required" });
+      }
+      const { buffer, contentType } = await aiService.generateListingImage({ brand, model, condition });
+      const url = await uploadBufferToR2(buffer, contentType, "png");
+      res.json({ url });
+    } catch (error: any) {
+      res.status(500).json({ message: error.message || "Failed to generate image" });
     }
   });
 

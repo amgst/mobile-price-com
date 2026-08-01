@@ -7,7 +7,8 @@ import { eq, like, ilike, or, and, sql, desc } from "drizzle-orm";
 import { brands, mobiles, users, usedListings, insertUsedListingSchema } from "../../shared/schema.ts";
 import { generateSitemapEntries, generateSitemapXML } from "../../client/src/components/seo/sitemap-generator.js";
 import jwt from 'jsonwebtoken';
-import { createPresignedUpload } from "../../server/r2.ts";
+import { createPresignedUpload, uploadBufferToR2 } from "../../server/r2.ts";
+import { aiService } from "../../server/ai-service.ts";
 
 // Database connection
 const createDbConnection = () => {
@@ -382,6 +383,57 @@ Crawl-delay: 1`;
     if (path === '/admin/listings' && method === 'GET') {
       const allListings = await db.select().from(usedListings).orderBy(desc(usedListings.createdAt));
       return response(200, allListings);
+    }
+
+    // Admin-created listing (published immediately, no moderation queue)
+    if (path === '/admin/listings' && method === 'POST') {
+      const body = JSON.parse(event.body || '{}');
+      try {
+        const listingData = insertUsedListingSchema.parse(body);
+        const [newListing] = await db.insert(usedListings).values({ ...listingData, status: 'approved' }).returning();
+        return response(201, newListing);
+      } catch (error: any) {
+        return response(400, { message: 'Invalid listing data', error: error.message });
+      }
+    }
+
+    // AI-assisted listing description
+    if (path === '/admin/ai/listing-description' && method === 'POST') {
+      const body = JSON.parse(event.body || '{}');
+      if (!body.brand || !body.model || !body.condition) {
+        return response(400, { message: 'brand, model, and condition are required' });
+      }
+      try {
+        const description = await aiService.generateListingDescription({
+          brand: body.brand,
+          model: body.model,
+          condition: body.condition,
+          price: body.price,
+          city: body.city,
+        });
+        return response(200, { description });
+      } catch (error: any) {
+        return response(500, { message: error.message || 'Failed to generate description' });
+      }
+    }
+
+    // AI-generated listing photo
+    if (path === '/admin/ai/listing-image' && method === 'POST') {
+      const body = JSON.parse(event.body || '{}');
+      if (!body.brand || !body.model || !body.condition) {
+        return response(400, { message: 'brand, model, and condition are required' });
+      }
+      try {
+        const { buffer, contentType } = await aiService.generateListingImage({
+          brand: body.brand,
+          model: body.model,
+          condition: body.condition,
+        });
+        const url = await uploadBufferToR2(buffer, contentType, 'png');
+        return response(200, { url });
+      } catch (error: any) {
+        return response(500, { message: error.message || 'Failed to generate image' });
+      }
     }
 
     // Update used listing status (approve/reject/sold)

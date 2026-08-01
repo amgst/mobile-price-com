@@ -13,6 +13,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { useToast } from "@/hooks/use-toast";
 import { AdminMobileForm } from "@/components/admin/AdminMobileForm";
 import { AdminBrandForm } from "@/components/admin/AdminBrandForm";
+import { AdminUsedListingForm } from "@/components/admin/AdminUsedListingForm";
 import { ProtectedAdmin } from "@/components/admin/protected-admin";
 import type { Mobile, Brand, UsedListing } from "@shared/schema";
 
@@ -21,6 +22,7 @@ export default function Admin() {
   const [selectedBrand, setSelectedBrand] = useState<Brand | null>(null);
   const [showMobileForm, setShowMobileForm] = useState(false);
   const [showBrandForm, setShowBrandForm] = useState(false);
+  const [showListingForm, setShowListingForm] = useState(false);
   const [showMobileDetails, setShowMobileDetails] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(12);
@@ -428,6 +430,10 @@ export default function Admin() {
           <TabsContent value="listings" className="space-y-4">
             <div className="flex justify-between items-center">
               <h2 className="text-2xl font-semibold">Used Phone Listings</h2>
+              <Button onClick={() => setShowListingForm(true)} data-testid="button-add-listing">
+                <Plus className="w-4 h-4 mr-2" />
+                Add Listing
+              </Button>
             </div>
 
             {listingsLoading ? (
@@ -533,6 +539,23 @@ export default function Admin() {
             )}
           </TabsContent>
         </Tabs>
+
+        {/* Used Listing Form Dialog */}
+        <Dialog open={showListingForm} onOpenChange={setShowListingForm}>
+          <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle>Add Listing</DialogTitle>
+            </DialogHeader>
+            <AdminUsedListingForm
+              brands={brands}
+              onSuccess={() => {
+                setShowListingForm(false);
+                queryClient.invalidateQueries({ queryKey: ["/api/admin/listings"] });
+                queryClient.invalidateQueries({ queryKey: ["/api/listings"] });
+              }}
+            />
+          </DialogContent>
+        </Dialog>
 
         {/* Mobile Form Dialog */}
         <Dialog open={showMobileForm} onOpenChange={setShowMobileForm}>

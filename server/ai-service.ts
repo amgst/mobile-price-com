@@ -26,6 +26,14 @@ export interface EnhancedMobileData {
   comparisonPoints: string[];
 }
 
+export interface UsedListingInfo {
+  brand: string;
+  model: string;
+  condition: string;
+  price?: string;
+  city?: string;
+}
+
 export class AIService {
   private isAIAvailable(): boolean {
     return !!process.env.OPENAI_API_KEY;
@@ -411,6 +419,75 @@ export class AIService {
       .map(item => item.name);
     
     return similar;
+  }
+
+  async generateListingDescription(params: UsedListingInfo): Promise<string> {
+    if (!this.isAIAvailable()) {
+      return this.getFallbackListingDescription(params);
+    }
+
+    try {
+      const prompt = `
+        Write a short, honest, appealing classified-ad description (2-3 sentences, under 400 characters)
+        for a used phone listing on a marketplace:
+
+        Brand: ${params.brand}
+        Model: ${params.model}
+        Condition: ${params.condition}
+        Price: ${params.price || "Not specified"}
+        ${params.city ? `Location: ${params.city}` : ""}
+
+        Write it the way a real seller would, referencing the stated condition honestly and inviting
+        buyers to reach out. Do not invent specific defects, accessories, or warranty claims that
+        weren't mentioned. Plain text only, no markdown, no quotation marks around the whole thing.
+      `;
+
+      const response = await openai!.chat.completions.create({
+        model: "gpt-4o",
+        messages: [
+          {
+            role: "system",
+            content: "You help sellers write concise, honest classified-ad descriptions for a used phone marketplace.",
+          },
+          {
+            role: "user",
+            content: prompt,
+          },
+        ],
+        temperature: 0.6,
+      });
+
+      const text = response.choices[0].message.content?.trim();
+      return text || this.getFallbackListingDescription(params);
+    } catch (error) {
+      console.error("AI listing description failed, using fallback:", error);
+      return this.getFallbackListingDescription(params);
+    }
+  }
+
+  private getFallbackListingDescription(params: UsedListingInfo): string {
+    return `${params.brand} ${params.model} in ${params.condition.toLowerCase()} condition, available for ${params.price || "a great price"}${params.city ? ` in ${params.city}` : ""}. Contact the seller for more details or to arrange a viewing.`;
+  }
+
+  async generateListingImage(params: Pick<UsedListingInfo, "brand" | "model" | "condition">): Promise<{ buffer: Buffer; contentType: string }> {
+    if (!this.isAIAvailable()) {
+      throw new Error("AI image generation requires OPENAI_API_KEY to be configured");
+    }
+
+    const prompt = `Professional e-commerce product photo of a used ${params.brand} ${params.model} smartphone in ${params.condition.toLowerCase()} condition. Centered on a clean plain white background, soft studio lighting, realistic, no text or watermarks, no hands.`;
+
+    const response = await openai!.images.generate({
+      model: "gpt-image-1",
+      prompt,
+      size: "1024x1024",
+    });
+
+    const b64 = response.data?.[0]?.b64_json;
+    if (!b64) {
+      throw new Error("AI image generation returned no image data");
+    }
+
+    return { buffer: Buffer.from(b64, "base64"), contentType: "image/png" };
   }
 }
 

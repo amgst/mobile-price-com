@@ -47,3 +47,26 @@ export async function createPresignedUpload(fileName: string, contentType: strin
 
   return { uploadUrl, publicUrl: objectUrl };
 }
+
+export async function uploadBufferToR2(buffer: Buffer, contentType: string, extension: string): Promise<string> {
+  const bucket = process.env.R2_BUCKET_NAME;
+  const publicUrl = process.env.R2_PUBLIC_URL;
+
+  if (!bucket || !publicUrl) {
+    throw new Error("R2 storage is not configured (missing R2_BUCKET_NAME / R2_PUBLIC_URL)");
+  }
+
+  const key = `used-listings/${randomUUID()}.${extension}`;
+  const client = getR2Client();
+
+  await client.send(
+    new PutObjectCommand({
+      Bucket: bucket,
+      Key: key,
+      Body: buffer,
+      ContentType: contentType,
+    })
+  );
+
+  return `${publicUrl.replace(/\/$/, "")}/${key}`;
+}

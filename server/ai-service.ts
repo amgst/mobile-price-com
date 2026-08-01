@@ -363,14 +363,20 @@ export class AIService {
     };
   }
 
-  async generateMobileImage(params: { brand: string; model: string }): Promise<{ buffer: Buffer; contentType: string }> {
+  async generateMobileImages(params: { brand: string; model: string }): Promise<{ buffer: Buffer; contentType: string }[]> {
     if (!isCloudflareAIAvailable()) {
       throw new Error("AI image generation requires CLOUDFLARE_ACCOUNT_ID and CLOUDFLARE_API_TOKEN to be configured");
     }
 
-    const prompt = `Professional product photography of a ${params.brand} ${params.model} smartphone, front view, screen on showing a colorful home screen, centered on a clean plain white background, studio lighting, e-commerce catalog photo, realistic, no text, no watermark, no hands.`;
+    const base = `${params.brand} ${params.model} smartphone, e-commerce catalog photo, realistic, studio lighting, no text, no watermark, no hands, no props. The phone fills almost the entire frame edge to edge with only a thin margin, shot close-up, not centered small on a large empty background.`;
+    const angles = [
+      `Front view of a ${base} Screen on, showing a colorful home screen.`,
+      `Back view of a ${base} Showing the rear camera module and back panel design.`,
+      `Three-quarter angled view of a ${base} Screen on.`,
+      `Side profile view of a ${base} Showing the thin edge and button placement.`,
+    ];
 
-    return await cfGenerateImage(prompt);
+    return await Promise.all(angles.map((prompt) => cfGenerateImage(prompt)));
   }
 
   async generateDetailedSpecs(mobile: MobileSpec): Promise<any[]> {
@@ -613,7 +619,7 @@ export class AIService {
       throw new Error("AI image generation requires CLOUDFLARE_ACCOUNT_ID and CLOUDFLARE_API_TOKEN to be configured");
     }
 
-    const prompt = `Professional e-commerce product photo of a used ${params.brand} ${params.model} smartphone in ${params.condition.toLowerCase()} condition. Centered on a clean plain white background, soft studio lighting, realistic, no text or watermarks, no hands.`;
+    const prompt = `Professional e-commerce product photo of a used ${params.brand} ${params.model} smartphone in ${params.condition.toLowerCase()} condition, on a clean plain white background, soft studio lighting, realistic, no text or watermarks, no hands, no props. The phone fills almost the entire frame edge to edge with only a thin margin, shot close-up, not centered small on a large empty background.`;
 
     return await cfGenerateImage(prompt);
   }

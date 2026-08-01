@@ -23,7 +23,6 @@ export default function Admin() {
   const [showMobileForm, setShowMobileForm] = useState(false);
   const [showBrandForm, setShowBrandForm] = useState(false);
   const [showListingForm, setShowListingForm] = useState(false);
-  const [showMobileDetails, setShowMobileDetails] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(12);
   const [searchQuery, setSearchQuery] = useState("");
@@ -164,11 +163,6 @@ export default function Admin() {
     setShowBrandForm(true);
   };
 
-  const handleViewMobile = (mobile: Mobile) => {
-    setSelectedMobile(mobile);
-    setShowMobileDetails(true);
-  };
-
   const handleAddMobile = () => {
     setSelectedMobile(null);
     setShowMobileForm(true);
@@ -298,14 +292,19 @@ export default function Admin() {
                           </p>
                         </div>
                         <div className="flex gap-2">
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => handleViewMobile(mobile)}
-                            data-testid={`button-view-mobile-${mobile.id}`}
+                          <a
+                            href={`/${mobile.brand}/${mobile.slug}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
                           >
-                            <Eye className="w-4 h-4" />
-                          </Button>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              data-testid={`button-view-mobile-${mobile.id}`}
+                            >
+                              <Eye className="w-4 h-4" />
+                            </Button>
+                          </a>
                           <Button
                             size="sm"
                             variant="outline"
@@ -596,77 +595,6 @@ export default function Admin() {
           </DialogContent>
         </Dialog>
 
-        {/* Mobile Details Dialog */}
-        <Dialog open={showMobileDetails} onOpenChange={setShowMobileDetails}>
-          <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
-            <DialogHeader>
-              <DialogTitle>{selectedMobile?.name}</DialogTitle>
-            </DialogHeader>
-            {selectedMobile && (
-              <div className="space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div>
-                    <SafeImage
-                      src={selectedMobile.imageUrl}
-                      alt={selectedMobile.name}
-                      className="w-full rounded-lg"
-                      loading="lazy"
-                    />
-                  </div>
-                  <div className="space-y-4">
-                    <div>
-                      <h3 className="font-semibold mb-2">Basic Info</h3>
-                      <div className="space-y-1 text-sm">
-                        <p><strong>Brand:</strong> {selectedMobile.brand}</p>
-                        <p><strong>Model:</strong> {selectedMobile.model}</p>
-                        <p><strong>Price:</strong> {selectedMobile.price || "Not set"}</p>
-                        <p><strong>Release Date:</strong> {selectedMobile.releaseDate}</p>
-                      </div>
-                    </div>
-                    <div>
-                      <h3 className="font-semibold mb-2">Quick Specs</h3>
-                      <div className="space-y-1 text-sm">
-                        <p><strong>RAM:</strong> {selectedMobile.shortSpecs.ram}</p>
-                        <p><strong>Storage:</strong> {selectedMobile.shortSpecs.storage}</p>
-                        <p><strong>Camera:</strong> <span dangerouslySetInnerHTML={{ __html: selectedMobile.shortSpecs.camera }} /></p>
-                        {selectedMobile.shortSpecs.battery && (
-                          <p><strong>Battery:</strong> {selectedMobile.shortSpecs.battery}</p>
-                        )}
-                        {selectedMobile.shortSpecs.display && (
-                          <p><strong>Display:</strong> <span dangerouslySetInnerHTML={{ __html: selectedMobile.shortSpecs.display }} /></p>
-                        )}
-                        {selectedMobile.shortSpecs.processor && (
-                          <p><strong>Processor:</strong> {selectedMobile.shortSpecs.processor}</p>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                
-                {selectedMobile.specifications && selectedMobile.specifications.length > 0 && (
-                  <div>
-                    <h3 className="font-semibold mb-3">Detailed Specifications</h3>
-                    <div className="space-y-4">
-                      {selectedMobile.specifications.map((category, index) => (
-                        <div key={index}>
-                          <h4 className="font-medium text-primary mb-2">{category.category}</h4>
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm">
-                            {category.specs.map((spec, specIndex) => (
-                              <div key={specIndex} className="flex justify-between border-b pb-1">
-                                <span className="text-gray-600 dark:text-gray-400">{spec.feature}</span>
-                                <span dangerouslySetInnerHTML={{ __html: spec.value }} />
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </div>
-            )}
-          </DialogContent>
-        </Dialog>
       </div>
     </ProtectedAdmin>
   );

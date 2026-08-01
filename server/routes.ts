@@ -554,10 +554,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       let imageUrl = "";
       let carouselImages: string[] = [];
       try {
-        const { buffer, contentType } = await aiService.generateMobileImage({ brand: brandSlug, model: draft.model });
-        const url = await uploadBufferToR2(buffer, contentType, "jpg", "mobiles");
-        imageUrl = url;
-        carouselImages = [url];
+        const images = await aiService.generateMobileImages({ brand: brandSlug, model: draft.model });
+        carouselImages = await Promise.all(
+          images.map(({ buffer, contentType }) => uploadBufferToR2(buffer, contentType, "jpg", "mobiles"))
+        );
+        imageUrl = carouselImages[0] || "";
       } catch (imageError) {
         console.error("AI mobile photo generation skipped:", imageError);
       }

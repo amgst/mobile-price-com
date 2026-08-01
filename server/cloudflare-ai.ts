@@ -1,4 +1,4 @@
-const TEXT_MODEL = "@cf/meta/llama-3.1-8b-instruct";
+const TEXT_MODEL = "@cf/meta/llama-3.3-70b-instruct-fp8-fast";
 const IMAGE_MODEL = "@cf/black-forest-labs/flux-1-schnell";
 
 function getCredentials() {

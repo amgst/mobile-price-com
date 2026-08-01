@@ -60,11 +60,14 @@ export function AIEnhancementTools({ mobile, onEnhancementComplete, onSpecsGener
     },
     onSuccess: (data) => {
       onSpecsGenerated?.(data);
+      const missing = [!data.price && "price", !data.releaseDate && "release date"].filter(Boolean).join(" and ");
       toast({
         title: "Success",
-        description: data.imageUrl
-          ? "Specs and photo generated — review and save below"
-          : "Specs generated — review and save below",
+        description: missing
+          ? `Specs generated — AI wasn't confident on ${missing}, please fill that in before saving`
+          : data.imageUrl
+            ? "Specs and photo generated — review and save below"
+            : "Specs generated — review and save below",
       });
     },
     onError: (error: any) => {

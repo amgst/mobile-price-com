@@ -279,17 +279,26 @@ export class AIService {
         "You are a mobile phone specifications expert. Respond with ONLY a single valid JSON object, " +
         "no markdown code fences, no commentary, matching exactly the schema described by the user.";
       const userPrompt = `
-        Generate realistic specifications for this phone: "${name}".
+        Generate specifications for this phone: "${name}".
         Infer the exact brand and model from the name.
 
+        IMPORTANT: releaseDate and price are the two fields most likely to be checked against reality.
+        Only fill them in if you actually have confident, specific knowledge of this exact phone's real
+        release date and launch price. If you are not certain (e.g. it's a very new, regional, or
+        obscure model you don't have reliable data on), leave releaseDate and price as empty strings ""
+        rather than fabricating a plausible-sounding but potentially false value.
+
+        For shortSpecs, specifications, dimensions, and buildMaterials, it's fine to give your best
+        realistic estimate based on the brand's typical positioning and the model name/number even if
+        you're not 100% certain, since these are less likely to be individually fact-checked.
+
         Keep each category to exactly 3 specs, values short (under 6 words). Respond with ONLY this JSON
-        shape (fill every field with your best realistic estimate; prices in Pakistani Rupees like
-        "Rs 449,999"; releaseDate as YYYY-MM-DD):
+        shape (prices in Pakistani Rupees like "Rs 449,999"; releaseDate as YYYY-MM-DD):
         {
           "brand": "lowercase-brand-slug",
           "model": "model name without the brand",
-          "releaseDate": "YYYY-MM-DD",
-          "price": "Rs 000,000",
+          "releaseDate": "YYYY-MM-DD or empty string if unsure",
+          "price": "Rs 000,000 or empty string if unsure",
           "shortSpecs": { "ram": "", "storage": "", "camera": "", "battery": "", "display": "", "processor": "" },
           "specifications": [
             { "category": "Display", "specs": [{ "feature": "", "value": "" }] },
@@ -313,7 +322,7 @@ export class AIService {
       return {
         brand: (parsed.brand || "").toString().toLowerCase().trim().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "") || this.guessBrandSlug(name),
         model: parsed.model || name,
-        releaseDate: parsed.releaseDate || new Date().toISOString().slice(0, 10),
+        releaseDate: parsed.releaseDate || "",
         price: parsed.price || "",
         shortSpecs: {
           ram: parsed.shortSpecs?.ram || "8GB",
@@ -376,7 +385,27 @@ export class AIService {
       `Side profile view of a ${base} Showing the thin edge and button placement.`,
     ];
 
-    return await Promise.all(angles.map((prompt) => cfGenerateImage(prompt)));
+    // Cloudflare's free tier can reject some requests fired at the same model concurrently, so
+    // retry each once after a short delay, and tolerate partial success instead of losing the batch.
+    const attempt = async (prompt: string) => {
+      try {
+        return await cfGenerateImage(prompt);
+      } catch {
+        await new Promise((resolve) => setTimeout(resolve, 1000));
+        return await cfGenerateImage(prompt);
+      }
+    };
+
+    const results = await Promise.allSettled(angles.map((prompt) => attempt(prompt)));
+    const images = results
+      .filter((r): r is PromiseFulfilledResult<{ buffer: Buffer; contentType: string }> => r.status === "fulfilled")
+      .map((r) => r.value);
+
+    if (images.length === 0) {
+      throw new Error("AI image generation failed for all attempts");
+    }
+
+    return images;
   }
 
   async generateDetailedSpecs(mobile: MobileSpec): Promise<any[]> {

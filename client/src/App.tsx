@@ -23,6 +23,9 @@ import Contact from "@/pages/contact";
 import Privacy from "@/pages/privacy";
 import Terms from "@/pages/terms";
 import Sitemap from "@/pages/sitemap";
+import Sell from "@/pages/sell";
+import UsedPhones from "@/pages/used-phones";
+import UsedPhoneDetail from "@/pages/used-phone-detail";
 
 function Router() {
   return (
@@ -38,6 +41,9 @@ function Router() {
       <Route path="/privacy" component={Privacy} />
       <Route path="/terms" component={Terms} />
       <Route path="/sitemap" component={Sitemap} />
+      <Route path="/sell" component={Sell} />
+      <Route path="/used-phones" component={UsedPhones} />
+      <Route path="/used-phones/:id" component={UsedPhoneDetail} />
       <Route path="/admin" component={Admin} />
       <Route path="/admin/import" component={AdminImport} />
       <Route path="/admin/login" component={AdminLogin} />

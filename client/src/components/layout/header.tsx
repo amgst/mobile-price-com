@@ -25,6 +25,8 @@ export function Header() {
     { label: "Brands", href: "/brands" },
     { label: "Compare", href: "/compare" },
     { label: "Latest", href: "/?filter=latest" },
+    { label: "Used Phones", href: "/used-phones" },
+    { label: "Sell Phone", href: "/sell" },
   ];
 
   return (

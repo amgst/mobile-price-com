@@ -1,5 +1,5 @@
-import { type User, type InsertUser, type Brand, type InsertBrand, type Mobile, type InsertMobile, users, brands, mobiles } from "../shared/schema.js";
-import { eq, ilike, or, and, sql } from "drizzle-orm";
+import { type User, type InsertUser, type Brand, type InsertBrand, type Mobile, type InsertMobile, type UsedListing, type InsertUsedListing, users, brands, mobiles, usedListings } from "../shared/schema.js";
+import { eq, ilike, or, and, sql, desc } from "drizzle-orm";
 import { db } from "./db.js";
 
 export interface IStorage {
@@ -24,6 +24,14 @@ export interface IStorage {
   createMobile(mobile: InsertMobile): Promise<Mobile>;
   updateMobile(id: string, mobile: Partial<InsertMobile>): Promise<Mobile>;
   deleteMobile(id: string): Promise<void>;
+
+  // Used listing operations
+  getApprovedUsedListings(filters?: { brand?: string; city?: string; search?: string }): Promise<UsedListing[]>;
+  getApprovedUsedListingById(id: string): Promise<UsedListing | undefined>;
+  getAllUsedListings(): Promise<UsedListing[]>;
+  createUsedListing(listing: InsertUsedListing): Promise<UsedListing>;
+  updateUsedListingStatus(id: string, status: string): Promise<UsedListing>;
+  deleteUsedListing(id: string): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -369,6 +377,64 @@ export class DatabaseStorage implements IStorage {
 
   async deleteMobile(id: string): Promise<void> {
     await db.delete(mobiles).where(eq(mobiles.id, id));
+  }
+
+  // Used listing operations
+  async getApprovedUsedListings(filters?: { brand?: string; city?: string; search?: string }): Promise<UsedListing[]> {
+    const conditions = [eq(usedListings.status, "approved")];
+
+    if (filters?.brand) {
+      conditions.push(ilike(usedListings.brand, filters.brand));
+    }
+    if (filters?.city) {
+      conditions.push(ilike(usedListings.city, `%${filters.city}%`));
+    }
+    if (filters?.search) {
+      const term = `%${filters.search}%`;
+      conditions.push(
+        or(
+          ilike(usedListings.brand, term),
+          ilike(usedListings.model, term),
+          ilike(usedListings.description, term)
+        )!
+      );
+    }
+
+    return await db
+      .select()
+      .from(usedListings)
+      .where(and(...conditions))
+      .orderBy(desc(usedListings.createdAt));
+  }
+
+  async getApprovedUsedListingById(id: string): Promise<UsedListing | undefined> {
+    const [listing] = await db
+      .select()
+      .from(usedListings)
+      .where(and(eq(usedListings.id, id), eq(usedListings.status, "approved")));
+    return listing;
+  }
+
+  async getAllUsedListings(): Promise<UsedListing[]> {
+    return await db.select().from(usedListings).orderBy(desc(usedListings.createdAt));
+  }
+
+  async createUsedListing(listing: InsertUsedListing): Promise<UsedListing> {
+    const [newListing] = await db.insert(usedListings).values(listing).returning();
+    return newListing;
+  }
+
+  async updateUsedListingStatus(id: string, status: string): Promise<UsedListing> {
+    const [updatedListing] = await db
+      .update(usedListings)
+      .set({ status })
+      .where(eq(usedListings.id, id))
+      .returning();
+    return updatedListing;
+  }
+
+  async deleteUsedListing(id: string): Promise<void> {
+    await db.delete(usedListings).where(eq(usedListings.id, id));
   }
 }
 

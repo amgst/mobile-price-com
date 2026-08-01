@@ -3,10 +3,11 @@ import pkg from "pg";
 const { Pool } = pkg;
 import { drizzle } from "drizzle-orm/node-postgres";
 import * as schema from "../../shared/schema.ts";
-import { eq, like, or, and, sql } from "drizzle-orm";
-import { brands, mobiles, users } from "../../shared/schema.ts";
+import { eq, like, ilike, or, and, sql, desc } from "drizzle-orm";
+import { brands, mobiles, users, usedListings, insertUsedListingSchema } from "../../shared/schema.ts";
 import { generateSitemapEntries, generateSitemapXML } from "../../client/src/components/seo/sitemap-generator.js";
 import jwt from 'jsonwebtoken';
+import { createPresignedUpload } from "../../server/r2.ts";
 
 // Database connection
 const createDbConnection = () => {
@@ -169,6 +170,72 @@ export const handler: Handler = async (event, context) => {
       return response(200, featuredMobiles);
     }
 
+    // Image upload signing (public - used by the sell-your-phone form)
+    if (path === '/uploads/sign' && method === 'POST') {
+      const body = JSON.parse(event.body || '{}');
+      if (!body.fileName || !body.contentType) {
+        return response(400, { message: 'fileName and contentType are required' });
+      }
+      try {
+        const result = await createPresignedUpload(body.fileName, body.contentType);
+        return response(200, result);
+      } catch (error: any) {
+        return response(500, { message: error.message || 'Failed to sign upload' });
+      }
+    }
+
+    // Used listings (sell-your-phone marketplace)
+    if (path === '/listings' && method === 'GET') {
+      const brandParam = event.queryStringParameters?.brand;
+      const cityParam = event.queryStringParameters?.city;
+      const searchParam = event.queryStringParameters?.search;
+
+      const conditions = [eq(usedListings.status, 'approved')];
+      if (brandParam) conditions.push(ilike(usedListings.brand, brandParam));
+      if (cityParam) conditions.push(ilike(usedListings.city, `%${cityParam}%`));
+      if (searchParam) {
+        conditions.push(
+          or(
+            ilike(usedListings.brand, `%${searchParam}%`),
+            ilike(usedListings.model, `%${searchParam}%`),
+            ilike(usedListings.description, `%${searchParam}%`)
+          )!
+        );
+      }
+
+      const results = await db
+        .select()
+        .from(usedListings)
+        .where(and(...conditions))
+        .orderBy(desc(usedListings.createdAt));
+      return response(200, results);
+    }
+
+    if (path === '/listings' && method === 'POST') {
+      const body = JSON.parse(event.body || '{}');
+      try {
+        const listingData = insertUsedListingSchema.parse(body);
+        const [newListing] = await db.insert(usedListings).values(listingData).returning();
+        return response(201, newListing);
+      } catch (error: any) {
+        return response(400, { message: 'Invalid listing data', error: error.message });
+      }
+    }
+
+    if (path.startsWith('/listings/') && method === 'GET') {
+      const listingId = path.split('/')[2];
+      const listing = await db
+        .select()
+        .from(usedListings)
+        .where(and(eq(usedListings.id, listingId), eq(usedListings.status, 'approved')))
+        .limit(1);
+
+      if (listing.length === 0) {
+        return response(404, { message: 'Listing not found' });
+      }
+      return response(200, listing[0]);
+    }
+
     // Sitemap XML endpoint
     if (path === '/sitemap.xml' && method === 'GET') {
       const allMobiles = await db.select().from(mobiles);
@@ -308,6 +375,33 @@ Crawl-delay: 1`;
     if (path.startsWith('/admin/brands/') && method === 'DELETE') {
       const brandId = path.split('/')[3];
       await db.delete(brands).where(eq(brands.id, brandId));
+      return response(204, null);
+    }
+
+    // List all used listings (any status) for moderation
+    if (path === '/admin/listings' && method === 'GET') {
+      const allListings = await db.select().from(usedListings).orderBy(desc(usedListings.createdAt));
+      return response(200, allListings);
+    }
+
+    // Update used listing status (approve/reject/sold)
+    if (path.startsWith('/admin/listings/') && method === 'PUT') {
+      const listingId = path.split('/')[3];
+      const body = JSON.parse(event.body || '{}');
+      if (!['pending', 'approved', 'rejected', 'sold'].includes(body.status)) {
+        return response(400, { message: 'Invalid status' });
+      }
+      const updatedListing = await db.update(usedListings)
+        .set({ status: body.status })
+        .where(eq(usedListings.id, listingId))
+        .returning();
+      return response(200, updatedListing[0]);
+    }
+
+    // Delete used listing
+    if (path.startsWith('/admin/listings/') && method === 'DELETE') {
+      const listingId = path.split('/')[3];
+      await db.delete(usedListings).where(eq(usedListings.id, listingId));
       return response(204, null);
     }
 

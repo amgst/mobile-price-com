@@ -4,8 +4,9 @@ import { storage } from "./storage.js";
 import { setupAIAnalysisRoutes } from "./ai-analysis-routes.js";
 import { registerSitemapRoutes } from "./sitemap-routes.js";
 import { registerExportRoutes } from "./export-routes.js";
-import { insertBrandSchema, insertMobileSchema } from "../shared/schema.js";
+import { insertBrandSchema, insertMobileSchema, insertUsedListingSchema } from "../shared/schema.js";
 import { aiService } from "./ai-service.js";
+import { createPresignedUpload } from "./r2.js";
 import { 
   requireJWTAuth, 
   handleJWTLogin, 
@@ -248,6 +249,91 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(204).send();
     } catch (error) {
       res.status(500).json({ message: "Failed to delete mobile" });
+    }
+  });
+
+  // Image upload signing (public - used by the sell-your-phone form)
+  app.post("/api/uploads/sign", async (req, res) => {
+    try {
+      const { fileName, contentType } = req.body || {};
+      if (!fileName || !contentType) {
+        return res.status(400).json({ message: "fileName and contentType are required" });
+      }
+      const result = await createPresignedUpload(fileName, contentType);
+      res.json(result);
+    } catch (error: any) {
+      res.status(500).json({ message: error.message || "Failed to sign upload" });
+    }
+  });
+
+  // Used listings (sell-your-phone marketplace)
+  app.get("/api/listings", async (req, res) => {
+    try {
+      const { brand, city, search } = req.query;
+      const listings = await storage.getApprovedUsedListings({
+        brand: brand as string | undefined,
+        city: city as string | undefined,
+        search: search as string | undefined,
+      });
+      res.json(listings);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch listings" });
+    }
+  });
+
+  app.get("/api/listings/:id", async (req, res) => {
+    try {
+      const listing = await storage.getApprovedUsedListingById(req.params.id);
+      if (!listing) {
+        return res.status(404).json({ message: "Listing not found" });
+      }
+      res.json(listing);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch listing" });
+    }
+  });
+
+  app.post("/api/listings", async (req, res) => {
+    try {
+      const listingData = insertUsedListingSchema.parse(req.body);
+      const listing = await storage.createUsedListing(listingData);
+      res.status(201).json(listing);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid listing data", errors: error.errors });
+      }
+      res.status(500).json({ message: "Failed to create listing" });
+    }
+  });
+
+  app.get("/api/admin/listings", async (req, res) => {
+    try {
+      const listings = await storage.getAllUsedListings();
+      res.json(listings);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch listings" });
+    }
+  });
+
+  app.put("/api/admin/listings/:id", async (req, res) => {
+    try {
+      const { status } = req.body;
+      if (!["pending", "approved", "rejected", "sold"].includes(status)) {
+        return res.status(400).json({ message: "Invalid status" });
+      }
+      const listing = await storage.updateUsedListingStatus(req.params.id, status);
+      res.json(listing);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to update listing" });
+    }
+  });
+
+  app.delete("/api/admin/listings/:id", async (req, res) => {
+    try {
+      await storage.deleteUsedListing(req.params.id);
+      res.status(204).send();
+    } catch (error) {
+      res.status(500).json({ message: "Failed to delete listing" });
     }
   });
 

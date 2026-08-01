@@ -79,3 +79,38 @@ export const insertUserSchema = createInsertSchema(users).pick({
 
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type User = typeof users.$inferSelect;
+
+export const usedListingConditions = ["New", "Excellent", "Good", "Fair"] as const;
+export const usedListingStatuses = ["pending", "approved", "rejected", "sold"] as const;
+
+export const usedListings = pgTable("used_listings", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  brand: text("brand").notNull(),
+  model: text("model").notNull(),
+  condition: text("condition").notNull(),
+  price: text("price").notNull(),
+  description: text("description"),
+  city: text("city"),
+  images: jsonb("images").$type<string[]>().notNull().default(sql`'[]'::jsonb`),
+  sellerName: text("seller_name").notNull(),
+  sellerPhone: text("seller_phone").notNull(),
+  sellerEmail: text("seller_email"),
+  status: text("status").notNull().default("pending"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const insertUsedListingSchema = createInsertSchema(usedListings)
+  .omit({
+    id: true,
+    createdAt: true,
+    status: true,
+  })
+  .extend({
+    condition: z.enum(usedListingConditions),
+    images: z.array(z.string()).min(1, "Add at least one photo").max(6, "Up to 6 photos allowed"),
+    sellerPhone: z.string().min(7, "Enter a valid phone number"),
+    sellerEmail: z.union([z.string().email(), z.literal("")]).optional(),
+  });
+
+export type InsertUsedListing = z.infer<typeof insertUsedListingSchema>;
+export type UsedListing = typeof usedListings.$inferSelect;

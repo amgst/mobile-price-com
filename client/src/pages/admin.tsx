@@ -7,14 +7,14 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { SafeImage } from "@/components/ui/safe-image";
 import { Input } from "@/components/ui/input";
-import { Plus, Edit, Trash2, Eye, Download, Search } from "lucide-react";
+import { Plus, Edit, Trash2, Eye, Download, Search, Check, X, MapPin, Phone } from "lucide-react";
 import { Link } from "wouter";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 import { AdminMobileForm } from "@/components/admin/AdminMobileForm";
 import { AdminBrandForm } from "@/components/admin/AdminBrandForm";
 import { ProtectedAdmin } from "@/components/admin/protected-admin";
-import type { Mobile, Brand } from "@shared/schema";
+import type { Mobile, Brand, UsedListing } from "@shared/schema";
 
 export default function Admin() {
   const [selectedMobile, setSelectedMobile] = useState<Mobile | null>(null);
@@ -48,6 +48,15 @@ export default function Admin() {
   const { data: brands = [], isLoading: brandsLoading } = useQuery<Brand[]>({
     queryKey: ["/api/brands"],
   });
+
+  const { data: listings = [], isLoading: listingsLoading } = useQuery<UsedListing[]>({
+    queryKey: ["/api/admin/listings"],
+  });
+
+  const pendingListingsCount = useMemo(
+    () => listings.filter((listing) => listing.status === "pending").length,
+    [listings]
+  );
 
   const deleteMobileMutation = useMutation({
     mutationFn: async (id: string) => {
@@ -92,6 +101,44 @@ export default function Admin() {
       });
     },
   });
+
+  const updateListingStatusMutation = useMutation({
+    mutationFn: async ({ id, status }: { id: string; status: string }) => {
+      await apiRequest(`/api/admin/listings/${id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status }),
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/listings"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/listings"] });
+      toast({ title: "Success", description: "Listing status updated" });
+    },
+    onError: () => {
+      toast({ title: "Error", description: "Failed to update listing", variant: "destructive" });
+    },
+  });
+
+  const deleteListingMutation = useMutation({
+    mutationFn: async (id: string) => {
+      await apiRequest(`/api/admin/listings/${id}`, { method: "DELETE" });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/listings"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/listings"] });
+      toast({ title: "Success", description: "Listing deleted" });
+    },
+    onError: () => {
+      toast({ title: "Error", description: "Failed to delete listing", variant: "destructive" });
+    },
+  });
+
+  const handleDeleteListing = (listing: UsedListing) => {
+    if (window.confirm(`Delete listing for ${listing.brand} ${listing.model}?`)) {
+      deleteListingMutation.mutate(listing.id);
+    }
+  };
 
   const handleDeleteMobile = async (mobile: Mobile) => {
     if (window.confirm(`Are you sure you want to delete ${mobile.name}?`)) {
@@ -161,9 +208,15 @@ export default function Admin() {
         </div>
 
         <Tabs defaultValue="mobiles" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-2">
+          <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="mobiles" data-testid="tab-mobiles">Mobiles</TabsTrigger>
             <TabsTrigger value="brands" data-testid="tab-brands">Brands</TabsTrigger>
+            <TabsTrigger value="listings" data-testid="tab-listings">
+              Used Listings
+              {pendingListingsCount > 0 && (
+                <Badge variant="destructive" className="ml-2">{pendingListingsCount}</Badge>
+              )}
+            </TabsTrigger>
           </TabsList>
 
           {/* Mobiles Tab */}
@@ -360,6 +413,115 @@ export default function Admin() {
                           onClick={() => handleDeleteBrand(brand)}
                           disabled={deleteBrandMutation.isPending}
                           data-testid={`button-delete-brand-${brand.id}`}
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            )}
+          </TabsContent>
+
+          {/* Used Listings Tab */}
+          <TabsContent value="listings" className="space-y-4">
+            <div className="flex justify-between items-center">
+              <h2 className="text-2xl font-semibold">Used Phone Listings</h2>
+            </div>
+
+            {listingsLoading ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {Array.from({ length: 3 }).map((_, i) => (
+                  <Card key={i} className="animate-pulse">
+                    <CardHeader>
+                      <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-3/4 mb-2" />
+                      <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded w-1/2" />
+                    </CardHeader>
+                  </Card>
+                ))}
+              </div>
+            ) : listings.length === 0 ? (
+              <Card>
+                <CardContent className="p-12 text-center text-gray-500">
+                  No submissions yet.
+                </CardContent>
+              </Card>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {listings.map((listing) => (
+                  <Card key={listing.id} className="hover:shadow-lg transition-shadow">
+                    <CardHeader>
+                      <CardTitle className="text-lg flex items-start justify-between gap-2">
+                        <span>{listing.brand} {listing.model}</span>
+                        <Badge
+                          variant={
+                            listing.status === "approved"
+                              ? "default"
+                              : listing.status === "rejected"
+                              ? "destructive"
+                              : "secondary"
+                          }
+                        >
+                          {listing.status}
+                        </Badge>
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <SafeImage
+                        src={listing.images}
+                        alt={`${listing.brand} ${listing.model}`}
+                        className="w-full h-32 object-cover rounded-md mb-4"
+                        loading="lazy"
+                      />
+                      <div className="space-y-1 mb-4 text-sm text-gray-600 dark:text-gray-400">
+                        <p><strong>Price:</strong> {listing.price}</p>
+                        <p><strong>Condition:</strong> {listing.condition}</p>
+                        {listing.city && (
+                          <p className="flex items-center"><MapPin className="w-3 h-3 mr-1" />{listing.city}</p>
+                        )}
+                        <p className="flex items-center"><Phone className="w-3 h-3 mr-1" />{listing.sellerName} - {listing.sellerPhone}</p>
+                      </div>
+                      <div className="flex gap-2 flex-wrap">
+                        {listing.status !== "approved" && (
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => updateListingStatusMutation.mutate({ id: listing.id, status: "approved" })}
+                            disabled={updateListingStatusMutation.isPending}
+                            data-testid={`button-approve-listing-${listing.id}`}
+                          >
+                            <Check className="w-4 h-4 mr-1" /> Approve
+                          </Button>
+                        )}
+                        {listing.status !== "rejected" && (
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => updateListingStatusMutation.mutate({ id: listing.id, status: "rejected" })}
+                            disabled={updateListingStatusMutation.isPending}
+                            data-testid={`button-reject-listing-${listing.id}`}
+                          >
+                            <X className="w-4 h-4 mr-1" /> Reject
+                          </Button>
+                        )}
+                        {listing.status === "approved" && (
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => updateListingStatusMutation.mutate({ id: listing.id, status: "sold" })}
+                            disabled={updateListingStatusMutation.isPending}
+                            data-testid={`button-sold-listing-${listing.id}`}
+                          >
+                            Mark Sold
+                          </Button>
+                        )}
+                        <Button
+                          size="sm"
+                          variant="destructive"
+                          onClick={() => handleDeleteListing(listing)}
+                          disabled={deleteListingMutation.isPending}
+                          data-testid={`button-delete-listing-${listing.id}`}
                         >
                           <Trash2 className="w-4 h-4" />
                         </Button>

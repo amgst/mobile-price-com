@@ -281,9 +281,10 @@ export function AdminMobileForm({ mobile, brands, onSuccess }: AdminMobileFormPr
 
   const handleSpecsGenerated = (specs: any) => {
     if (specs.name) form.setValue("name", specs.name);
-    if (specs.brand) form.setValue("brand", specs.brand);
+    if (specs.brand) form.setValue("brand", specs.brand, { shouldValidate: true });
     if (specs.model) form.setValue("model", specs.model);
     if (specs.price) form.setValue("price", specs.price);
+    if (specs.releaseDate) form.setValue("releaseDate", specs.releaseDate);
     if (specs.shortSpecs) {
       if (specs.shortSpecs.ram) form.setValue("shortSpecs.ram", specs.shortSpecs.ram);
       if (specs.shortSpecs.storage) form.setValue("shortSpecs.storage", specs.shortSpecs.storage);
@@ -292,13 +293,28 @@ export function AdminMobileForm({ mobile, brands, onSuccess }: AdminMobileFormPr
       if (specs.shortSpecs.display) form.setValue("shortSpecs.display", specs.shortSpecs.display);
       if (specs.shortSpecs.processor) form.setValue("shortSpecs.processor", specs.shortSpecs.processor);
     }
-    if (specs.specifications) {
+    if (specs.specifications?.length) {
       form.setValue("specifications", specs.specifications);
     }
-    // Generate slug from name
-    if (specs.name) {
-      const slug = specs.name.toLowerCase().replace(/[^a-z0-9]/g, "-").replace(/-+/g, "-").replace(/^-|-$/g, "");
-      form.setValue("slug", slug);
+    if (specs.dimensions) {
+      form.setValue("dimensions", specs.dimensions);
+    }
+    if (specs.buildMaterials) {
+      form.setValue("buildMaterials", specs.buildMaterials);
+    }
+    if (specs.imageUrl) {
+      form.setValue("imageUrl", specs.imageUrl, { shouldValidate: true });
+    }
+    if (specs.carouselImages?.length) {
+      form.setValue("carouselImages", specs.carouselImages, { shouldValidate: true });
+    }
+    // Generate slug from the AI-provided slug, or derive one from the name
+    const slug = specs.slug || (specs.name
+      ? specs.name.toLowerCase().replace(/[^a-z0-9]/g, "-").replace(/-+/g, "-").replace(/^-|-$/g, "")
+      : "");
+    if (slug) {
+      setSlugManuallyEdited(true);
+      form.setValue("slug", slug, { shouldValidate: true });
     }
   };
 

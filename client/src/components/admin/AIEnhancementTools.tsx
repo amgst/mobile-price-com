@@ -19,9 +19,7 @@ interface AIEnhancementToolsProps {
 }
 
 export function AIEnhancementTools({ mobile, onEnhancementComplete, onSpecsGenerated }: AIEnhancementToolsProps) {
-  const [brandName, setBrandName] = useState("");
-  const [modelName, setModelName] = useState("");
-  const [year, setYear] = useState("2024");
+  const [phoneName, setPhoneName] = useState("");
   const [enhancement, setEnhancement] = useState<any>(null);
   const { toast } = useToast();
 
@@ -51,11 +49,11 @@ export function AIEnhancementTools({ mobile, onEnhancementComplete, onSpecsGener
     },
   });
 
-  const generateSpecsMutation = useMutation({
-    mutationFn: async ({ brand, model, year }: { brand: string; model: string; year?: string }) => {
-      const response = await apiRequest("/api/admin/ai/generate-specs", {
+  const generateDraftMutation = useMutation({
+    mutationFn: async (name: string) => {
+      const response = await apiRequest("/api/admin/ai/generate-mobile-draft", {
         method: "POST",
-        body: JSON.stringify({ brand, model, year }),
+        body: JSON.stringify({ name }),
         headers: { "Content-Type": "application/json" },
       });
       return await response.json();
@@ -64,13 +62,15 @@ export function AIEnhancementTools({ mobile, onEnhancementComplete, onSpecsGener
       onSpecsGenerated?.(data);
       toast({
         title: "Success",
-        description: "Mobile specifications generated successfully",
+        description: data.imageUrl
+          ? "Specs and photo generated — review and save below"
+          : "Specs generated — review and save below",
       });
     },
     onError: (error: any) => {
       toast({
         title: "Error",
-        description: error.message || "Failed to generate specifications",
+        description: error.message || "Failed to generate mobile draft",
         variant: "destructive",
       });
     },
@@ -107,13 +107,9 @@ export function AIEnhancementTools({ mobile, onEnhancementComplete, onSpecsGener
     }
   };
 
-  const handleGenerateSpecs = () => {
-    if (brandName.trim() && modelName.trim()) {
-      generateSpecsMutation.mutate({
-        brand: brandName.trim(),
-        model: modelName.trim(),
-        year: year.trim() || "2024",
-      });
+  const handleGenerateDraft = () => {
+    if (phoneName.trim()) {
+      generateDraftMutation.mutate(phoneName.trim());
     }
   };
 
@@ -133,51 +129,31 @@ export function AIEnhancementTools({ mobile, onEnhancementComplete, onSpecsGener
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-6">
-          {/* Generate New Mobile Specs */}
+          {/* Generate New Mobile from just a name */}
           <div className="space-y-4">
             <h3 className="font-semibold flex items-center gap-2">
               <Wand2 className="w-4 h-4" />
-              Generate Mobile Specifications
+              Quick Add: Just Give the Phone Name
             </h3>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div>
-                <Label htmlFor="brand">Brand Name</Label>
-                <Input
-                  id="brand"
-                  value={brandName}
-                  onChange={(e) => setBrandName(e.target.value)}
-                  placeholder="e.g., Samsung, Apple, OnePlus"
-                  data-testid="input-ai-brand"
-                />
-              </div>
-              <div>
-                <Label htmlFor="model">Model Name</Label>
-                <Input
-                  id="model"
-                  value={modelName}
-                  onChange={(e) => setModelName(e.target.value)}
-                  placeholder="e.g., Galaxy S24, iPhone 15"
-                  data-testid="input-ai-model"
-                />
-              </div>
-              <div>
-                <Label htmlFor="year">Year (Optional)</Label>
-                <Input
-                  id="year"
-                  value={year}
-                  onChange={(e) => setYear(e.target.value)}
-                  placeholder="e.g., 2024"
-                  data-testid="input-ai-year"
-                />
-              </div>
+            <p className="text-sm text-gray-500">
+              Type the full phone name and AI fills in the brand, specs, dimensions, build materials,
+              and a product photo below — review and click Create Mobile when ready.
+            </p>
+            <div className="flex flex-col sm:flex-row gap-2">
+              <Input
+                value={phoneName}
+                onChange={(e) => setPhoneName(e.target.value)}
+                placeholder="e.g., Samsung Galaxy S24 Ultra"
+                data-testid="input-ai-phone-name"
+              />
+              <Button
+                onClick={handleGenerateDraft}
+                disabled={!phoneName.trim() || generateDraftMutation.isPending}
+                data-testid="button-generate-draft"
+              >
+                {generateDraftMutation.isPending ? "Generating..." : "Generate Everything with AI"}
+              </Button>
             </div>
-            <Button
-              onClick={handleGenerateSpecs}
-              disabled={!brandName.trim() || !modelName.trim() || generateSpecsMutation.isPending}
-              data-testid="button-generate-specs"
-            >
-              {generateSpecsMutation.isPending ? "Generating..." : "Generate Mobile Specs"}
-            </Button>
           </div>
 
           {mobile && (
@@ -291,7 +267,7 @@ export function AIEnhancementTools({ mobile, onEnhancementComplete, onSpecsGener
           </CardTitle>
         </CardHeader>
         <CardContent className="text-sm space-y-2">
-          <p>• <strong>Generate Specs:</strong> Create realistic specifications for new mobile models</p>
+          <p>• <strong>Quick Add:</strong> Type a phone name to auto-fill specs, dimensions, build materials, and a product photo</p>
           <p>• <strong>Marketing Content:</strong> Get SEO descriptions and engaging copy for existing phones</p>
           <p>• <strong>Detailed Specs:</strong> Generate comprehensive technical specifications automatically</p>
           <p>• <strong>Quality:</strong> AI uses current market standards and brand positioning for realistic results</p>

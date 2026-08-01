@@ -454,7 +454,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "brand, model, and condition are required" });
       }
       const { buffer, contentType } = await aiService.generateListingImage({ brand, model, condition });
-      const url = await uploadBufferToR2(buffer, contentType, "png");
+      const url = await uploadBufferToR2(buffer, contentType, "png", "used-listings");
       res.json({ url });
     } catch (error: any) {
       res.status(500).json({ message: error.message || "Failed to generate image" });
@@ -511,6 +511,79 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error: any) {
       console.error("AI spec generation error:", error);
       res.status(500).json({ message: error.message || "Failed to generate mobile specs" });
+    }
+  });
+
+  // One-shot: type a phone name, get a fully populated draft (specs + AI photo)
+  app.post("/api/admin/ai/generate-mobile-draft", async (req, res) => {
+    try {
+      const { name } = req.body || {};
+      if (!name || typeof name !== "string" || !name.trim()) {
+        return res.status(400).json({ message: "name is required" });
+      }
+      const trimmedName = name.trim();
+
+      const draft = await aiService.generateMobileDraft(trimmedName);
+
+      // Resolve the AI-suggested brand against real brands, auto-creating one if needed
+      // so the phone always has a valid, visible home on a brand page.
+      let brandSlug = draft.brand;
+      if (brandSlug) {
+        const allBrands = await storage.getAllBrands();
+        const matched = allBrands.find(
+          (b) => b.slug === brandSlug || b.name.toLowerCase() === brandSlug.replace(/-/g, " ")
+        );
+        if (matched) {
+          brandSlug = matched.slug;
+        } else {
+          const brandName = brandSlug
+            .split("-")
+            .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+            .join(" ");
+          await storage.createBrand({
+            name: brandName,
+            slug: brandSlug,
+            logo: brandName.charAt(0),
+            phoneCount: "0",
+            description: `${brandName} mobile phones`,
+            isVisible: true,
+          });
+        }
+      }
+
+      let imageUrl = "";
+      let carouselImages: string[] = [];
+      try {
+        const { buffer, contentType } = await aiService.generateMobileImage({ brand: brandSlug, model: draft.model });
+        const url = await uploadBufferToR2(buffer, contentType, "jpg", "mobiles");
+        imageUrl = url;
+        carouselImages = [url];
+      } catch (imageError) {
+        console.error("AI mobile photo generation skipped:", imageError);
+      }
+
+      const slug = trimmedName
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, "-")
+        .replace(/^-+|-+$/g, "");
+
+      res.json({
+        name: trimmedName,
+        slug,
+        brand: brandSlug,
+        model: draft.model,
+        releaseDate: draft.releaseDate,
+        price: draft.price,
+        shortSpecs: draft.shortSpecs,
+        specifications: draft.specifications,
+        dimensions: draft.dimensions,
+        buildMaterials: draft.buildMaterials,
+        imageUrl,
+        carouselImages,
+      });
+    } catch (error: any) {
+      console.error("AI mobile draft generation error:", error);
+      res.status(500).json({ message: error.message || "Failed to generate mobile draft" });
     }
   });
 

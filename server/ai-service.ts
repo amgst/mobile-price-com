@@ -1,7 +1,47 @@
 import OpenAI from "openai";
+import { isCloudflareAIAvailable, generateText as cfGenerateText, generateImage as cfGenerateImage } from "./cloudflare-ai.js";
 
 // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
 const openai = process.env.OPENAI_API_KEY ? new OpenAI({ apiKey: process.env.OPENAI_API_KEY }) : null;
+
+// Best-effort repair for JSON truncated mid-generation (e.g. a text model hitting its token limit):
+// closes any string left open and appends closing brackets for any objects/arrays left open.
+function repairTruncatedJson(text: string): string {
+  const stack: string[] = [];
+  let inString = false;
+  let escaped = false;
+
+  for (const ch of text) {
+    if (inString) {
+      if (escaped) {
+        escaped = false;
+      } else if (ch === "\\") {
+        escaped = true;
+      } else if (ch === '"') {
+        inString = false;
+      }
+      continue;
+    }
+
+    if (ch === '"') {
+      inString = true;
+    } else if (ch === "{" || ch === "[") {
+      stack.push(ch);
+    } else if (ch === "}" || ch === "]") {
+      stack.pop();
+    }
+  }
+
+  let repaired = text;
+  if (inString) {
+    repaired += '"';
+  }
+  repaired = repaired.replace(/,\s*$/, "");
+  for (let i = stack.length - 1; i >= 0; i--) {
+    repaired += stack[i] === "{" ? "}" : "]";
+  }
+  return repaired;
+}
 
 export interface MobileSpec {
   name: string;
@@ -24,6 +64,17 @@ export interface EnhancedMobileData {
   keyFeatures: string[];
   targetAudience: string;
   comparisonPoints: string[];
+}
+
+export interface MobileDraft {
+  brand: string;
+  model: string;
+  releaseDate: string;
+  price: string;
+  shortSpecs: MobileSpec["shortSpecs"];
+  specifications: { category: string; specs: { feature: string; value: string }[] }[];
+  dimensions: { height: string; width: string; thickness: string; weight: string };
+  buildMaterials: { frame: string; back: string; protection: string };
 }
 
 export interface UsedListingInfo {
@@ -216,6 +267,110 @@ export class AIService {
       price: "",
       shortSpecs: specs,
     };
+  }
+
+  async generateMobileDraft(name: string): Promise<MobileDraft> {
+    if (!isCloudflareAIAvailable()) {
+      return this.getFallbackMobileDraft(name);
+    }
+
+    try {
+      const systemPrompt =
+        "You are a mobile phone specifications expert. Respond with ONLY a single valid JSON object, " +
+        "no markdown code fences, no commentary, matching exactly the schema described by the user.";
+      const userPrompt = `
+        Generate realistic specifications for this phone: "${name}".
+        Infer the exact brand and model from the name.
+
+        Keep each category to exactly 3 specs, values short (under 6 words). Respond with ONLY this JSON
+        shape (fill every field with your best realistic estimate; prices in Pakistani Rupees like
+        "Rs 449,999"; releaseDate as YYYY-MM-DD):
+        {
+          "brand": "lowercase-brand-slug",
+          "model": "model name without the brand",
+          "releaseDate": "YYYY-MM-DD",
+          "price": "Rs 000,000",
+          "shortSpecs": { "ram": "", "storage": "", "camera": "", "battery": "", "display": "", "processor": "" },
+          "specifications": [
+            { "category": "Display", "specs": [{ "feature": "", "value": "" }] },
+            { "category": "Camera", "specs": [{ "feature": "", "value": "" }] },
+            { "category": "Performance", "specs": [{ "feature": "", "value": "" }] },
+            { "category": "Battery & Charging", "specs": [{ "feature": "", "value": "" }] },
+            { "category": "Build & Design", "specs": [{ "feature": "", "value": "" }] }
+          ],
+          "dimensions": { "height": "", "width": "", "thickness": "", "weight": "" },
+          "buildMaterials": { "frame": "", "back": "", "protection": "" }
+        }
+      `;
+
+      const raw = await cfGenerateText(systemPrompt, userPrompt, 1800);
+      const jsonMatch = raw.match(/\{[\s\S]*\}/);
+      if (!jsonMatch) {
+        throw new Error("AI response did not contain JSON");
+      }
+      const parsed = JSON.parse(repairTruncatedJson(jsonMatch[0]));
+
+      return {
+        brand: (parsed.brand || "").toString().toLowerCase().trim().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "") || this.guessBrandSlug(name),
+        model: parsed.model || name,
+        releaseDate: parsed.releaseDate || new Date().toISOString().slice(0, 10),
+        price: parsed.price || "",
+        shortSpecs: {
+          ram: parsed.shortSpecs?.ram || "8GB",
+          storage: parsed.shortSpecs?.storage || "128GB",
+          camera: parsed.shortSpecs?.camera || "50MP",
+          battery: parsed.shortSpecs?.battery,
+          display: parsed.shortSpecs?.display,
+          processor: parsed.shortSpecs?.processor,
+        },
+        specifications: Array.isArray(parsed.specifications) ? parsed.specifications : [],
+        dimensions: {
+          height: parsed.dimensions?.height || "",
+          width: parsed.dimensions?.width || "",
+          thickness: parsed.dimensions?.thickness || "",
+          weight: parsed.dimensions?.weight || "",
+        },
+        buildMaterials: {
+          frame: parsed.buildMaterials?.frame || "",
+          back: parsed.buildMaterials?.back || "",
+          protection: parsed.buildMaterials?.protection || "",
+        },
+      };
+    } catch (error) {
+      console.error("AI mobile draft generation failed, using fallback:", error);
+      return this.getFallbackMobileDraft(name);
+    }
+  }
+
+  private guessBrandSlug(name: string): string {
+    return name.trim().split(/\s+/)[0]?.toLowerCase() || "";
+  }
+
+  private getFallbackMobileDraft(name: string): MobileDraft {
+    const brand = this.guessBrandSlug(name);
+    const model = name.trim().split(/\s+/).slice(1).join(" ") || name;
+    const specs = this.getFallbackMobileSpecs(brand, model);
+
+    return {
+      brand,
+      model,
+      releaseDate: new Date().toISOString().slice(0, 10),
+      price: "",
+      shortSpecs: specs.shortSpecs,
+      specifications: this.getFallbackDetailedSpecs(specs),
+      dimensions: { height: "", width: "", thickness: "", weight: "" },
+      buildMaterials: { frame: "", back: "", protection: "" },
+    };
+  }
+
+  async generateMobileImage(params: { brand: string; model: string }): Promise<{ buffer: Buffer; contentType: string }> {
+    if (!isCloudflareAIAvailable()) {
+      throw new Error("AI image generation requires CLOUDFLARE_ACCOUNT_ID and CLOUDFLARE_API_TOKEN to be configured");
+    }
+
+    const prompt = `Professional product photography of a ${params.brand} ${params.model} smartphone, front view, screen on showing a colorful home screen, centered on a clean plain white background, studio lighting, e-commerce catalog photo, realistic, no text, no watermark, no hands.`;
+
+    return await cfGenerateImage(prompt);
   }
 
   async generateDetailedSpecs(mobile: MobileSpec): Promise<any[]> {
@@ -422,42 +577,26 @@ export class AIService {
   }
 
   async generateListingDescription(params: UsedListingInfo): Promise<string> {
-    if (!this.isAIAvailable()) {
+    if (!isCloudflareAIAvailable()) {
       return this.getFallbackListingDescription(params);
     }
 
     try {
-      const prompt = `
-        Write a short, honest, appealing classified-ad description (2-3 sentences, under 400 characters)
-        for a used phone listing on a marketplace:
-
+      const systemPrompt =
+        "You help sellers write concise, honest classified-ad descriptions for a used phone marketplace. " +
+        "Respond with plain text only (2-3 sentences, under 400 characters), no markdown, no surrounding quotation marks.";
+      const userPrompt = `
         Brand: ${params.brand}
         Model: ${params.model}
         Condition: ${params.condition}
         Price: ${params.price || "Not specified"}
         ${params.city ? `Location: ${params.city}` : ""}
 
-        Write it the way a real seller would, referencing the stated condition honestly and inviting
-        buyers to reach out. Do not invent specific defects, accessories, or warranty claims that
-        weren't mentioned. Plain text only, no markdown, no quotation marks around the whole thing.
+        Write the ad the way a real seller would, referencing the stated condition honestly and inviting
+        buyers to reach out. Do not invent specific defects, accessories, or warranty claims that weren't mentioned.
       `;
 
-      const response = await openai!.chat.completions.create({
-        model: "gpt-4o",
-        messages: [
-          {
-            role: "system",
-            content: "You help sellers write concise, honest classified-ad descriptions for a used phone marketplace.",
-          },
-          {
-            role: "user",
-            content: prompt,
-          },
-        ],
-        temperature: 0.6,
-      });
-
-      const text = response.choices[0].message.content?.trim();
+      const text = await cfGenerateText(systemPrompt, userPrompt);
       return text || this.getFallbackListingDescription(params);
     } catch (error) {
       console.error("AI listing description failed, using fallback:", error);
@@ -470,24 +609,13 @@ export class AIService {
   }
 
   async generateListingImage(params: Pick<UsedListingInfo, "brand" | "model" | "condition">): Promise<{ buffer: Buffer; contentType: string }> {
-    if (!this.isAIAvailable()) {
-      throw new Error("AI image generation requires OPENAI_API_KEY to be configured");
+    if (!isCloudflareAIAvailable()) {
+      throw new Error("AI image generation requires CLOUDFLARE_ACCOUNT_ID and CLOUDFLARE_API_TOKEN to be configured");
     }
 
     const prompt = `Professional e-commerce product photo of a used ${params.brand} ${params.model} smartphone in ${params.condition.toLowerCase()} condition. Centered on a clean plain white background, soft studio lighting, realistic, no text or watermarks, no hands.`;
 
-    const response = await openai!.images.generate({
-      model: "gpt-image-1",
-      prompt,
-      size: "1024x1024",
-    });
-
-    const b64 = response.data?.[0]?.b64_json;
-    if (!b64) {
-      throw new Error("AI image generation returned no image data");
-    }
-
-    return { buffer: Buffer.from(b64, "base64"), contentType: "image/png" };
+    return await cfGenerateImage(prompt);
   }
 }
 

@@ -429,10 +429,81 @@ Crawl-delay: 1`;
           model: body.model,
           condition: body.condition,
         });
-        const url = await uploadBufferToR2(buffer, contentType, 'png');
+        const url = await uploadBufferToR2(buffer, contentType, 'png', 'used-listings');
         return response(200, { url });
       } catch (error: any) {
         return response(500, { message: error.message || 'Failed to generate image' });
+      }
+    }
+
+    // One-shot: type a phone name, get a fully populated draft (specs + AI photo)
+    if (path === '/admin/ai/generate-mobile-draft' && method === 'POST') {
+      const body = JSON.parse(event.body || '{}');
+      const trimmedName = typeof body.name === 'string' ? body.name.trim() : '';
+      if (!trimmedName) {
+        return response(400, { message: 'name is required' });
+      }
+
+      try {
+        const draft = await aiService.generateMobileDraft(trimmedName);
+
+        // Resolve the AI-suggested brand against real brands, auto-creating one if needed.
+        let brandSlug = draft.brand;
+        if (brandSlug) {
+          const allBrands = await db.select().from(brands);
+          const matched = allBrands.find(
+            (b) => b.slug === brandSlug || b.name.toLowerCase() === brandSlug.replace(/-/g, ' ')
+          );
+          if (matched) {
+            brandSlug = matched.slug;
+          } else {
+            const brandName = brandSlug
+              .split('-')
+              .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+              .join(' ');
+            await db.insert(brands).values({
+              name: brandName,
+              slug: brandSlug,
+              logo: brandName.charAt(0),
+              phoneCount: '0',
+              description: `${brandName} mobile phones`,
+              isVisible: true,
+            });
+          }
+        }
+
+        let imageUrl = '';
+        let carouselImages: string[] = [];
+        try {
+          const { buffer, contentType } = await aiService.generateMobileImage({ brand: brandSlug, model: draft.model });
+          const url = await uploadBufferToR2(buffer, contentType, 'jpg', 'mobiles');
+          imageUrl = url;
+          carouselImages = [url];
+        } catch (imageError) {
+          console.error('AI mobile photo generation skipped:', imageError);
+        }
+
+        const slug = trimmedName
+          .toLowerCase()
+          .replace(/[^a-z0-9]+/g, '-')
+          .replace(/^-+|-+$/g, '');
+
+        return response(200, {
+          name: trimmedName,
+          slug,
+          brand: brandSlug,
+          model: draft.model,
+          releaseDate: draft.releaseDate,
+          price: draft.price,
+          shortSpecs: draft.shortSpecs,
+          specifications: draft.specifications,
+          dimensions: draft.dimensions,
+          buildMaterials: draft.buildMaterials,
+          imageUrl,
+          carouselImages,
+        });
+      } catch (error: any) {
+        return response(500, { message: error.message || 'Failed to generate mobile draft' });
       }
     }
 

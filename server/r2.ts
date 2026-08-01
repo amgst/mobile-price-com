@@ -48,7 +48,7 @@ export async function createPresignedUpload(fileName: string, contentType: strin
   return { uploadUrl, publicUrl: objectUrl };
 }
 
-export async function uploadBufferToR2(buffer: Buffer, contentType: string, extension: string): Promise<string> {
+export async function uploadBufferToR2(buffer: Buffer, contentType: string, extension: string, folder: string = "uploads"): Promise<string> {
   const bucket = process.env.R2_BUCKET_NAME;
   const publicUrl = process.env.R2_PUBLIC_URL;
 
@@ -56,7 +56,7 @@ export async function uploadBufferToR2(buffer: Buffer, contentType: string, exte
     throw new Error("R2 storage is not configured (missing R2_BUCKET_NAME / R2_PUBLIC_URL)");
   }
 
-  const key = `used-listings/${randomUUID()}.${extension}`;
+  const key = `${folder}/${randomUUID()}.${extension}`;
   const client = getR2Client();
 
   await client.send(

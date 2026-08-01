@@ -4,7 +4,7 @@ const { Pool } = pkg;
 import { drizzle } from "drizzle-orm/node-postgres";
 import * as schema from "../../shared/schema.ts";
 import { eq, like, ilike, or, and, sql, desc } from "drizzle-orm";
-import { brands, mobiles, users, usedListings, insertUsedListingSchema } from "../../shared/schema.ts";
+import { brands, mobiles, users, usedListings, insertUsedListingSchema, insertMobileSchema, insertBrandSchema } from "../../shared/schema.ts";
 import { generateSitemapEntries, generateSitemapXML } from "../../client/src/components/seo/sitemap-generator.js";
 import jwt from 'jsonwebtoken';
 import { createPresignedUpload, uploadBufferToR2 } from "../../server/r2.ts";
@@ -341,6 +341,72 @@ Crawl-delay: 1`;
 
     if (path.startsWith('/admin/') && !isAuthenticated) {
       return response(401, { message: 'Unauthorized' });
+    }
+
+    // AI marketing content for an existing mobile
+    if (path === '/admin/ai/enhance-mobile' && method === 'POST') {
+      const body = JSON.parse(event.body || '{}');
+      if (!body.mobileData) {
+        return response(400, { message: 'Mobile data is required' });
+      }
+      try {
+        const enhancement = await aiService.enhanceMobileData(body.mobileData);
+        return response(200, enhancement);
+      } catch (error: any) {
+        return response(500, { message: error.message || 'Failed to enhance mobile data' });
+      }
+    }
+
+    // AI detailed specs for an existing mobile
+    if (path === '/admin/ai/detailed-specs' && method === 'POST') {
+      const body = JSON.parse(event.body || '{}');
+      if (!body.mobileData) {
+        return response(400, { message: 'Mobile data is required' });
+      }
+      try {
+        const detailedSpecs = await aiService.generateDetailedSpecs(body.mobileData);
+        return response(200, { specifications: detailedSpecs });
+      } catch (error: any) {
+        return response(500, { message: error.message || 'Failed to generate detailed specs' });
+      }
+    }
+
+    // Create mobile
+    if (path === '/admin/mobiles' && method === 'POST') {
+      const body = JSON.parse(event.body || '{}');
+      try {
+        const mobileData = insertMobileSchema.parse(body);
+        const [newMobile] = await db.insert(mobiles).values(mobileData).returning();
+        return response(201, newMobile);
+      } catch (error: any) {
+        if (error?.name === 'ZodError') {
+          return response(400, { message: 'Invalid mobile data', errors: error.errors });
+        }
+        if (error?.code === '23505') {
+          return response(409, { message: 'Slug already exists. Please use a unique slug.' });
+        }
+        console.error('Failed to create mobile:', error);
+        return response(500, { message: error.message || 'Failed to create mobile' });
+      }
+    }
+
+    // Create brand
+    if (path === '/admin/brands' && method === 'POST') {
+      const body = JSON.parse(event.body || '{}');
+      try {
+        const brandData = insertBrandSchema.parse(body);
+        const [newBrand] = await db.insert(brands).values(brandData).returning();
+        return response(201, newBrand);
+      } catch (error: any) {
+        if (error?.name === 'ZodError') {
+          return response(400, { message: 'Invalid brand data', errors: error.errors });
+        }
+        if (error?.code === '23505') {
+          return response(409, { message: 'Slug already exists. Please use a unique slug.' });
+        }
+        console.error('Failed to create brand:', error);
+        return response(500, { message: error.message || 'Failed to create brand' });
+      }
     }
 
     // Update mobile

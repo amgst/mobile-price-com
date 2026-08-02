@@ -1,7 +1,6 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage.js";
-import { setupAIAnalysisRoutes } from "./ai-analysis-routes.js";
 import { registerSitemapRoutes } from "./sitemap-routes.js";
 import { registerExportRoutes } from "./export-routes.js";
 import { insertBrandSchema, insertMobileSchema, insertUsedListingSchema } from "../shared/schema.js";
@@ -65,9 +64,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/auth/login", handleJWTLogin);
   app.post("/api/auth/logout", handleJWTLogout);
   app.get("/api/auth/status", checkJWTAuthStatus);
-  
-  // Setup AI Analysis routes
-  setupAIAnalysisRoutes(app);
   
   // Setup SEO routes (sitemap, robots.txt)
   registerSitemapRoutes(app);

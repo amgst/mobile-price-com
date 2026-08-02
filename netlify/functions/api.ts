@@ -10,7 +10,6 @@ import jwt from 'jsonwebtoken';
 import { createPresignedUpload, uploadBufferToR2 } from "../../server/r2.ts";
 import { aiService } from "../../server/ai-service.ts";
 import { extractDraftFromUrl, mirrorImagesToR2 } from "../../server/data-import/url-import-service.ts";
-import { analyzeCamera, analyzeScreen, findSimilarDesigns, findSimilarPhonesFromImage } from "../../server/ai-analysis-core.ts";
 
 // Database connection
 const createDbConnection = () => {
@@ -312,64 +311,6 @@ Crawl-delay: 1`;
     }
 
     // Auth endpoints with JWT
-    // AI analysis (public, backed by Cloudflare Workers AI)
-    if (path === '/ai/analyze-camera' && method === 'POST') {
-      const body = JSON.parse(event.body || '{}');
-      const [mobile] = await db.select().from(mobiles).where(eq(mobiles.id, body.mobileId ?? ''));
-      if (!mobile) return response(404, { error: 'Mobile not found' });
-      try {
-        return response(200, await analyzeCamera(mobile));
-      } catch (error: any) {
-        console.error('Camera analysis error:', error);
-        return response(500, { error: error?.message || 'Analysis failed' });
-      }
-    }
-
-    if (path === '/ai/analyze-screen' && method === 'POST') {
-      const body = JSON.parse(event.body || '{}');
-      const [mobile] = await db.select().from(mobiles).where(eq(mobiles.id, body.mobileId ?? ''));
-      if (!mobile) return response(404, { error: 'Mobile not found' });
-      try {
-        return response(200, await analyzeScreen(mobile));
-      } catch (error: any) {
-        console.error('Screen analysis error:', error);
-        return response(500, { error: error?.message || 'Analysis failed' });
-      }
-    }
-
-    if (path === '/ai/find-similar-designs' && method === 'POST') {
-      const body = JSON.parse(event.body || '{}');
-      const [target] = await db.select().from(mobiles).where(eq(mobiles.id, body.targetMobileId ?? ''));
-      if (!target) return response(404, { error: 'Target mobile not found' });
-      try {
-        const ids: string[] = Array.isArray(body.candidateIds) ? body.candidateIds.slice(0, 8) : [];
-        const candidates = ids.length > 0
-          ? await db.select().from(mobiles).where(or(...ids.map((id) => eq(mobiles.id, id))))
-          : [];
-        return response(200, await findSimilarDesigns(target, candidates));
-      } catch (error: any) {
-        console.error('Design similarity error:', error);
-        return response(500, { error: error?.message || 'Analysis failed' });
-      }
-    }
-
-    if (path === '/ai/find-similar-photos' && method === 'POST') {
-      const body = JSON.parse(event.body || '{}');
-      if (!body.imageBase64 || typeof body.imageBase64 !== 'string') {
-        return response(400, { error: 'imageBase64 is required' });
-      }
-      try {
-        const ids: string[] = Array.isArray(body.mobileIds) ? body.mobileIds.slice(0, 15) : [];
-        const candidates = ids.length > 0
-          ? await db.select().from(mobiles).where(or(...ids.map((id) => eq(mobiles.id, id))))
-          : [];
-        return response(200, await findSimilarPhonesFromImage(body.imageBase64, candidates));
-      } catch (error: any) {
-        console.error('Photo similarity error:', error);
-        return response(500, { error: error?.message || 'Analysis failed' });
-      }
-    }
-
     if (path === '/auth/status' && method === 'GET') {
       const token = extractTokenFromCookies(event.headers.cookie);
       

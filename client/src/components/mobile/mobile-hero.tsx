@@ -7,23 +7,15 @@ import { useCompare } from "@/hooks/use-compare";
 import { ImageUtils } from "@/lib/image-utils";
 import { formatCompactCamera, formatCompactDisplay, formatCompactProcessor } from "@/lib/text-utils";
 import { formatMobilePrice } from "@/lib/price";
-import { 
-  Heart, 
-  Share2, 
-  Plus, 
-  Check, 
-  Camera,
-  Monitor,
-  Palette,
-  Upload,
+import {
+  Heart,
+  Share2,
+  Plus,
+  Check,
   Sparkles,
   ChevronDown,
   ChevronUp
 } from "lucide-react";
-import { PhotoUploadSearch } from "@/components/ai/photo-upload-search";
-import { CameraQualityAnalyzer } from "@/components/ai/camera-quality-analyzer";
-import { ScreenQualityAnalyzer } from "@/components/ai/screen-quality-analyzer";
-import { DesignSimilarityFinder } from "@/components/ai/design-similarity-finder";
 import type { Mobile } from "@shared/schema";
 
 interface MobileHeroProps {
@@ -32,10 +24,6 @@ interface MobileHeroProps {
 
 export function MobileHero({ mobile }: MobileHeroProps) {
   const [selectedImage, setSelectedImage] = useState(0);
-  const [showPhotoSearch, setShowPhotoSearch] = useState(false);
-  const [showCameraAnalyzer, setShowCameraAnalyzer] = useState(false);
-  const [showScreenAnalyzer, setShowScreenAnalyzer] = useState(false);
-  const [showDesignFinder, setShowDesignFinder] = useState(false);
   const [expandedSpecs, setExpandedSpecs] = useState<{ [key: string]: boolean }>({});
 
   const { addToCompare, isInCompare } = useCompare();
@@ -256,68 +244,7 @@ export function MobileHero({ mobile }: MobileHeroProps) {
                 </div>
               </div>
 
-              {/* AI Tools */}
               <div className="space-y-4">
-                <div className="flex items-center justify-between py-2 border-b border-gray-100 dark:border-gray-700">
-                  <div className="flex items-center gap-2">
-                    <Camera className="h-4 w-4 text-gray-500" />
-                    <span className="text-gray-600 dark:text-gray-300">Camera Quality Analyzer</span>
-                  </div>
-                  <Button variant="outline" size="sm" onClick={() => setShowCameraAnalyzer(!showCameraAnalyzer)}>
-                    {showCameraAnalyzer ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
-                  </Button>
-                </div>
-                {showCameraAnalyzer && (
-                  <div className="p-4 border rounded-lg">
-                    <CameraQualityAnalyzer mobile={mobile} onClose={() => setShowCameraAnalyzer(false)} />
-                  </div>
-                )}
-
-                <div className="flex items-center justify-between py-2 border-b border-gray-100 dark:border-gray-700">
-                  <div className="flex items-center gap-2">
-                    <Monitor className="h-4 w-4 text-gray-500" />
-                    <span className="text-gray-600 dark:text-gray-300">Screen Quality Analyzer</span>
-                  </div>
-                  <Button variant="outline" size="sm" onClick={() => setShowScreenAnalyzer(!showScreenAnalyzer)}>
-                    {showScreenAnalyzer ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
-                  </Button>
-                </div>
-                {showScreenAnalyzer && (
-                  <div className="p-4 border rounded-lg">
-                    <ScreenQualityAnalyzer mobile={mobile} onClose={() => setShowScreenAnalyzer(false)} />
-                  </div>
-                )}
-
-                <div className="flex items-center justify-between py-2 border-b border-gray-100 dark:border-gray-700">
-                  <div className="flex items-center gap-2">
-                    <Palette className="h-4 w-4 text-gray-500" />
-                    <span className="text-gray-600 dark:text-gray-300">Design Similarity Finder</span>
-                  </div>
-                  <Button variant="outline" size="sm" onClick={() => setShowDesignFinder(!showDesignFinder)}>
-                    {showDesignFinder ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
-                  </Button>
-                </div>
-                {showDesignFinder && (
-                  <div className="p-4 border rounded-lg">
-                    <DesignSimilarityFinder mobile={mobile} onClose={() => setShowDesignFinder(false)} />
-                  </div>
-                )}
-
-                <div className="flex items-center justify-between py-2 border-b border-gray-100 dark:border-gray-700">
-                  <div className="flex items-center gap-2">
-                    <Upload className="h-4 w-4 text-gray-500" />
-                    <span className="text-gray-600 dark:text-gray-300">Photo Upload Search</span>
-                  </div>
-                  <Button variant="outline" size="sm" onClick={() => setShowPhotoSearch(!showPhotoSearch)}>
-                    {showPhotoSearch ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
-                  </Button>
-                </div>
-                {showPhotoSearch && (
-                  <div className="p-4 border rounded-lg">
-                    <PhotoUploadSearch onClose={() => setShowPhotoSearch(false)} />
-                  </div>
-                )}
-
                 <div className="flex items-center justify-between py-2 border-b border-gray-100 dark:border-gray-700">
                   <div className="flex items-center gap-2">
                     <Sparkles className="h-4 w-4 text-gray-500" />

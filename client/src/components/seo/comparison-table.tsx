@@ -2,6 +2,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Link } from "wouter";
 import { SafeImage } from "@/components/ui/safe-image";
 import { ImageUtils } from "@/lib/image-utils";
+import { formatMobilePrice } from "@/lib/price";
 import type { Mobile } from "@shared/schema";
 
 interface ComparisonTableProps {
@@ -60,7 +61,7 @@ export function ComparisonTable({ mobile, relatedMobiles, title = "Compare Simil
                   <td className="p-4 font-medium text-gray-900">Price in Pakistan</td>
                   {allMobiles.map((m) => (
                     <td key={m.id} className="p-4 text-center">
-                      <span className="font-bold text-green-600">{m.price}</span>
+                      <span className="font-bold text-green-600">{formatMobilePrice(m)}</span>
                     </td>
                   ))}
                 </tr>

@@ -66,6 +66,23 @@ export async function generateText(systemPrompt: string, userPrompt: string, max
   return "";
 }
 
+const VISION_MODEL = "@cf/llava-hf/llava-1.5-7b-hf";
+
+export async function describeImage(prompt: string, imageBase64: string, maxTokens: number = 512): Promise<string> {
+  const bytes = Array.from(Buffer.from(imageBase64, "base64"));
+  const result = await runModel(VISION_MODEL, {
+    image: bytes,
+    prompt,
+    max_tokens: maxTokens,
+  });
+
+  const description = result?.description ?? result?.response;
+  if (typeof description === "string" && description.trim()) {
+    return description.trim();
+  }
+  throw new Error("Cloudflare Workers AI returned no image description");
+}
+
 export async function generateImage(prompt: string): Promise<{ buffer: Buffer; contentType: string }> {
   const result = await runModel(IMAGE_MODEL, { prompt });
   const b64 = result?.image;

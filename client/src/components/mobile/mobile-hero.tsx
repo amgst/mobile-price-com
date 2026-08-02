@@ -6,6 +6,7 @@ import { SafeImage } from "@/components/ui/safe-image";
 import { useCompare } from "@/hooks/use-compare";
 import { ImageUtils } from "@/lib/image-utils";
 import { formatCompactCamera, formatCompactDisplay, formatCompactProcessor } from "@/lib/text-utils";
+import { formatMobilePrice } from "@/lib/price";
 import { 
   Heart, 
   Share2, 
@@ -146,7 +147,7 @@ export function MobileHero({ mobile }: MobileHeroProps) {
               </div>
               <h1 className="text-3xl font-bold text-gray-900 mb-2">{mobile.name} Price in Pakistan (Updated 2025)</h1>
               <div className="text-4xl font-bold text-green-600 mb-6" data-testid="mobile-price">
-                {mobile.price}
+                {formatMobilePrice(mobile)}
               </div>
 
               {/* Key Features */}

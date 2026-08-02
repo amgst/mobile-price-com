@@ -302,6 +302,9 @@ Respond with ONLY this JSON shape:
 
 Rules:
 - pricePkr: price in Pakistani Rupees as a plain integer if stated on the page, else null.
+- Pakistani sites (.pk domains, or pages saying "Price in Pakistan") list prices in Pakistani
+  Rupees even when they display the ₹ symbol — put that amount in pricePkr. Never output the
+  ₹ symbol in the price field; write Pakistani Rupee prices as "Rs 120,999".
 - ramGb/storageGb: base variant, integers in GB. batteryMah: integer in mAh. screenInches: number like 6.7.
 - launchYear: 4-digit year from the release date if known.
 - Up to 5 specs per category, values short (under 8 words). Skip categories with no data.
@@ -332,6 +335,16 @@ ${pageText}
   const brandSlug = toSlug(parsed.brand || name.split(/\s+/)[0]);
   const slug = toSlug(name);
 
+  // Normalize pricing: the site displays prices in PKR, so whenever we know the
+  // PKR amount the display string is always "Rs 120,999" — never ₹ or raw text.
+  const rawPrice = (parsed.price || "").toString().trim();
+  let pricePkr = toInt(parsed.pricePkr);
+  const sourceHost = new URL(url).hostname;
+  if (!pricePkr && sourceHost.endsWith(".pk") && /₹|Rs\.?\s*[\d,]+/i.test(rawPrice)) {
+    pricePkr = toInt(rawPrice);
+  }
+  const price = pricePkr ? `Rs ${pricePkr.toLocaleString("en-US")}` : rawPrice;
+
   const screenRaw = parsed.screenInches;
   const screenInches =
     typeof screenRaw === "number" && screenRaw > 0
@@ -346,8 +359,8 @@ ${pageText}
     brand: brandSlug,
     model: (parsed.model || name).toString().trim(),
     releaseDate: (parsed.releaseDate || "").toString(),
-    price: (parsed.price || "").toString(),
-    pricePkr: toInt(parsed.pricePkr),
+    price,
+    pricePkr,
     ramGb: toInt(parsed.ramGb),
     storageGb: toInt(parsed.storageGb),
     batteryMah: toInt(parsed.batteryMah),

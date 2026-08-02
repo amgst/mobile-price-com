@@ -19,8 +19,8 @@ export default function Brands() {
 
   // Calculate actual mobile count for each brand
   const brandsWithCounts = (brands && mobiles) ? brands.map(brand => {
-    const mobileCount = mobiles.filter(mobile => 
-      mobile.brand.toLowerCase() === brand.name.toLowerCase()
+    const mobileCount = mobiles.filter(mobile =>
+      mobile.brand.toLowerCase() === brand.slug.toLowerCase()
     ).length;
     return { ...brand, actualMobileCount: mobileCount };
   }).filter(brand => 

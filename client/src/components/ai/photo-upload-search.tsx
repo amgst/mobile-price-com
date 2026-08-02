@@ -28,6 +28,7 @@ export function PhotoUploadSearch({ onClose }: PhotoUploadSearchProps) {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [results, setResults] = useState<PhotoSimilarityResult[]>([]);
   const [analysisComplete, setAnalysisComplete] = useState(false);
+  const [error, setError] = useState('');
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const { data: allMobiles } = useQuery<Mobile[]>({
@@ -57,24 +58,25 @@ export function PhotoUploadSearch({ onClose }: PhotoUploadSearchProps) {
     
     setIsAnalyzing(true);
     setResults([]);
-    
-    try {
-      // Convert image to base64
-      const reader = new FileReader();
-      reader.onload = async (e) => {
+    setError('');
+
+    const reader = new FileReader();
+    reader.onload = async (e) => {
+      try {
         const base64 = (e.target?.result as string)?.split(',')[1];
         if (base64) {
           const similarPhones = await aiAnalysisService.findSimilarPhones(base64, allMobiles);
           setResults(similarPhones);
           setAnalysisComplete(true);
         }
-      };
-      reader.readAsDataURL(selectedImage);
-    } catch (error) {
-      console.error('Image analysis failed:', error);
-    } finally {
-      setIsAnalyzing(false);
-    }
+      } catch (err) {
+        console.error('Image analysis failed:', err);
+        setError(err instanceof Error ? err.message : 'AI analysis is currently unavailable.');
+      } finally {
+        setIsAnalyzing(false);
+      }
+    };
+    reader.readAsDataURL(selectedImage);
   };
 
   const clearImage = () => {
@@ -289,6 +291,14 @@ export function PhotoUploadSearch({ onClose }: PhotoUploadSearchProps) {
                 </div>
               )}
             </div>
+          )}
+
+          {/* Error State */}
+          {error && !isAnalyzing && (
+            <Card className="p-6 text-center border-red-300">
+              <h3 className="font-semibold text-red-600 mb-1">Analysis Unavailable</h3>
+              <p className="text-sm text-muted-foreground">{error}</p>
+            </Card>
           )}
 
           {/* No Results */}

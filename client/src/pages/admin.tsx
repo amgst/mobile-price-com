@@ -384,12 +384,22 @@ export default function Admin() {
                         <div className="w-10 h-10 bg-primary text-primary-foreground rounded-full flex items-center justify-center font-bold">
                           {brand.logo || brand.name.charAt(0)}
                         </div>
-                        {brand.name}
+                        <a
+                          href={`/${brand.slug}`}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="hover:underline"
+                          title={`View ${brand.name} phones`}
+                        >
+                          {brand.name}
+                        </a>
                       </CardTitle>
                       <div className="flex gap-2">
-                        <Badge variant="secondary">
-                          {brand.phoneCount} phones
-                        </Badge>
+                        <a href={`/${brand.slug}`} target="_blank" rel="noreferrer">
+                          <Badge variant="secondary" className="hover:bg-secondary/80">
+                            {brand.phoneCount || 0} phones
+                          </Badge>
+                        </a>
                         <Badge variant={brand.isVisible !== false ? "default" : "destructive"}>
                           {brand.isVisible !== false ? "Visible" : "Hidden"}
                         </Badge>

@@ -30,6 +30,7 @@ interface CameraQualityAnalyzerProps {
 export function CameraQualityAnalyzer({ mobile, onClose }: CameraQualityAnalyzerProps) {
   const [analysis, setAnalysis] = useState<CameraQualityAnalysis | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState('');
 
   useEffect(() => {
     analyzeCamera();
@@ -38,12 +39,14 @@ export function CameraQualityAnalyzer({ mobile, onClose }: CameraQualityAnalyzer
   const analyzeCamera = async () => {
     setIsLoading(true);
     setAnalysis(null);
-    
+    setError('');
+
     try {
       const result = await aiAnalysisService.analyzeCameraQuality(mobile);
       setAnalysis(result);
-    } catch (error) {
-      console.error('Camera analysis failed:', error);
+    } catch (err) {
+      console.error('Camera analysis failed:', err);
+      setError(err instanceof Error ? err.message : 'AI analysis is currently unavailable.');
     } finally {
       setIsLoading(false);
     }
@@ -117,6 +120,14 @@ export function CameraQualityAnalyzer({ mobile, onClose }: CameraQualityAnalyzer
                 </div>
                 <Progress value={75} className="w-full max-w-sm mx-auto" />
               </div>
+            </Card>
+          )}
+
+          {/* Error State */}
+          {error && !isLoading && (
+            <Card className="p-6 text-center border-red-300">
+              <h3 className="font-semibold text-red-600 mb-1">Analysis Unavailable</h3>
+              <p className="text-sm text-muted-foreground">{error}</p>
             </Card>
           )}
 

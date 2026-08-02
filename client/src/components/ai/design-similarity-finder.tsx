@@ -28,6 +28,7 @@ export function DesignSimilarityFinder({ mobile, onClose }: DesignSimilarityFind
   const [results, setResults] = useState<DesignSimilarityResult[]>([]);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [analysisComplete, setAnalysisComplete] = useState(false);
+  const [error, setError] = useState('');
 
   const { data: allMobiles } = useQuery<Mobile[]>({
     queryKey: ["/api/mobiles"],
@@ -35,17 +36,19 @@ export function DesignSimilarityFinder({ mobile, onClose }: DesignSimilarityFind
 
   const findSimilarDesigns = async () => {
     if (!allMobiles) return;
-    
+
     setIsAnalyzing(true);
     setResults([]);
     setAnalysisComplete(false);
-    
+    setError('');
+
     try {
       const similarities = await aiAnalysisService.findSimilarDesigns(mobile, allMobiles);
       setResults(similarities);
       setAnalysisComplete(true);
-    } catch (error) {
-      console.error('Design similarity analysis failed:', error);
+    } catch (err) {
+      console.error('Design similarity analysis failed:', err);
+      setError(err instanceof Error ? err.message : 'AI analysis is currently unavailable.');
     } finally {
       setIsAnalyzing(false);
     }
@@ -147,6 +150,14 @@ export function DesignSimilarityFinder({ mobile, onClose }: DesignSimilarityFind
                 </div>
                 <Progress value={70} className="w-full" />
               </div>
+            </Card>
+          )}
+
+          {/* Error State */}
+          {error && !isAnalyzing && (
+            <Card className="p-6 text-center border-red-300">
+              <h3 className="font-semibold text-red-600 mb-1">Analysis Unavailable</h3>
+              <p className="text-sm text-muted-foreground">{error}</p>
             </Card>
           )}
 

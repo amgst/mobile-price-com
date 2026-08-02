@@ -1,6 +1,7 @@
 import { Link } from "wouter";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ArrowRight } from "lucide-react";
+import { formatMobilePrice } from "@/lib/price";
 import type { Mobile } from "@shared/schema";
 
 interface InternalLinksProps {
@@ -70,7 +71,7 @@ export function InternalLinks({ mobile, relatedMobiles }: InternalLinksProps) {
                       {getAnchorText(linkMobile)}
                     </span>
                     <div className="text-sm text-gray-600 mt-1">
-                      {linkMobile.price} • {linkMobile.shortSpecs.ram} • {linkMobile.shortSpecs.storage}
+                      {formatMobilePrice(linkMobile)} • {linkMobile.shortSpecs.ram} • {linkMobile.shortSpecs.storage}
                     </div>
                   </div>
                   <ArrowRight className="w-5 h-5 text-gray-400 group-hover:text-primary transition-colors ml-4" />

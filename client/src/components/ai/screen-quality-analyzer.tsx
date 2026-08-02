@@ -30,6 +30,7 @@ interface ScreenQualityAnalyzerProps {
 export function ScreenQualityAnalyzer({ mobile, onClose }: ScreenQualityAnalyzerProps) {
   const [analysis, setAnalysis] = useState<ScreenQualityAnalysis | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState('');
 
   useEffect(() => {
     analyzeScreen();
@@ -38,12 +39,14 @@ export function ScreenQualityAnalyzer({ mobile, onClose }: ScreenQualityAnalyzer
   const analyzeScreen = async () => {
     setIsLoading(true);
     setAnalysis(null);
-    
+    setError('');
+
     try {
       const result = await aiAnalysisService.analyzeScreenQuality(mobile);
       setAnalysis(result);
-    } catch (error) {
-      console.error('Screen analysis failed:', error);
+    } catch (err) {
+      console.error('Screen analysis failed:', err);
+      setError(err instanceof Error ? err.message : 'AI analysis is currently unavailable.');
     } finally {
       setIsLoading(false);
     }
@@ -125,6 +128,14 @@ export function ScreenQualityAnalyzer({ mobile, onClose }: ScreenQualityAnalyzer
                 </div>
                 <Progress value={80} className="w-full max-w-sm mx-auto" />
               </div>
+            </Card>
+          )}
+
+          {/* Error State */}
+          {error && !isLoading && (
+            <Card className="p-6 text-center border-red-300">
+              <h3 className="font-semibold text-red-600 mb-1">Analysis Unavailable</h3>
+              <p className="text-sm text-muted-foreground">{error}</p>
             </Card>
           )}
 

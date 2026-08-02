@@ -6,6 +6,7 @@ import { SafeImage } from "@/components/ui/safe-image";
 import { useCompare } from "@/hooks/use-compare";
 import { ImageUtils } from "@/lib/image-utils";
 import { formatCompactCamera, formatCompactDisplay, formatCompactProcessor } from "@/lib/text-utils";
+import { formatMobilePrice } from "@/lib/price";
 import type { Mobile } from "@shared/schema";
 
 interface MobileCardProps {
@@ -59,7 +60,7 @@ export function MobileCard({ mobile }: MobileCardProps) {
             {mobile.name}
           </h3>
           <div className="text-lg font-bold text-green-600 mb-3">
-            {mobile.price}
+            {formatMobilePrice(mobile)}
           </div>
 
           {/* Key Specs */}

@@ -258,6 +258,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Copy externally-hosted images into our R2 bucket; returns source→R2 URL pairs.
+  app.post("/api/admin/import/mirror-images", async (req, res) => {
+    try {
+      const { urls } = req.body;
+      if (!Array.isArray(urls) || urls.length === 0) {
+        return res.status(400).json({ message: "urls array is required" });
+      }
+      const { mirrorImagesToR2 } = await import("./data-import/url-import-service.js");
+      const mirrored = await mirrorImagesToR2(urls.filter((u: unknown) => typeof u === "string"));
+      res.json({ mirrored });
+    } catch (error) {
+      console.error("Image mirroring failed:", error);
+      res.status(500).json({ message: error instanceof Error ? error.message : "Failed to copy images" });
+    }
+  });
+
   app.put("/api/admin/mobiles/:id", async (req, res) => {
     try {
       const mobileData = insertMobileSchema.partial().parse(req.body);

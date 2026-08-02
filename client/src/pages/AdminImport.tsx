@@ -5,9 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Badge } from '@/components/ui/badge';
-import { Textarea } from '@/components/ui/textarea';
-import { Loader2, Database, Link2, Save } from 'lucide-react';
+import { Loader2, Database, Link2, Save, Plus, Trash2, Star } from 'lucide-react';
 import { apiRequest } from '@/lib/queryClient';
 import { ProtectedAdmin } from '@/components/admin/protected-admin';
 
@@ -23,6 +21,11 @@ interface ShortSpecs {
   battery?: string;
   display?: string;
   processor?: string;
+}
+
+interface SpecCategory {
+  category: string;
+  specs: { feature: string; value: string }[];
 }
 
 interface UrlImportDraft {
@@ -41,7 +44,7 @@ interface UrlImportDraft {
   imageUrl: string;
   carouselImages: string[];
   shortSpecs: ShortSpecs;
-  specifications: { category: string; specs: { feature: string; value: string }[] }[];
+  specifications: SpecCategory[];
   dimensions: { height: string; width: string; thickness: string; weight: string };
   buildMaterials: { frame: string; back: string; protection: string };
   sourceUrl: string;
@@ -52,9 +55,11 @@ interface UrlImportDraft {
 function AdminImport() {
   const [url, setUrl] = useState('');
   const [draft, setDraft] = useState<UrlImportDraft | null>(null);
-  const [specsJson, setSpecsJson] = useState('');
-  const [specsJsonError, setSpecsJsonError] = useState('');
+  // Image URLs the admin wants to keep in the phone's gallery (mirrored to R2 on save)
+  const [galleryPicks, setGalleryPicks] = useState<string[]>([]);
+  const [saveStage, setSaveStage] = useState<'idle' | 'copying-images' | 'saving'>('idle');
   const [saveMessage, setSaveMessage] = useState('');
+  const [saveError, setSaveError] = useState('');
 
   const queryClient = useQueryClient();
 
@@ -73,60 +78,83 @@ function AdminImport() {
     },
     onSuccess: (data) => {
       setDraft(data);
-      setSpecsJson(JSON.stringify(data.specifications, null, 2));
-      setSpecsJsonError('');
+      setGalleryPicks(data.imageUrl ? [data.imageUrl] : []);
       setSaveMessage('');
+      setSaveError('');
     },
   });
 
-  const saveMutation = useMutation<unknown, Error, UrlImportDraft>({
-    mutationFn: async (d: UrlImportDraft) => {
-      let specifications = d.specifications;
-      try {
-        specifications = JSON.parse(specsJson);
-        setSpecsJsonError('');
-      } catch {
-        setSpecsJsonError('Specifications JSON is invalid — fix it before saving.');
-        throw new Error('Invalid specifications JSON');
-      }
+  const handleSave = async () => {
+    if (!draft) return;
+    setSaveError('');
+    setSaveMessage('');
 
+    try {
+      // 1) Copy the chosen images to our own R2 storage so we never depend on
+      //    the source site's images staying online.
+      setSaveStage('copying-images');
+      const wanted = Array.from(new Set([draft.imageUrl, ...galleryPicks].filter(Boolean)));
+      let mainImage = draft.imageUrl;
+      let gallery = wanted;
+
+      const mirrorResponse = await apiRequest('/api/admin/import/mirror-images', {
+        method: 'POST',
+        body: JSON.stringify({ urls: wanted }),
+        headers: { 'Content-Type': 'application/json' },
+      });
+      const { mirrored } = (await mirrorResponse.json()) as {
+        mirrored: { source: string; url: string }[];
+      };
+      const map = new Map(mirrored.map((m) => [m.source, m.url]));
+      mainImage = map.get(draft.imageUrl) || draft.imageUrl;
+      gallery = wanted.map((u) => map.get(u) || u);
+
+      // 2) Save the mobile itself.
+      setSaveStage('saving');
       const payload = {
-        slug: d.slug,
-        name: d.name,
-        brand: d.brand,
-        model: d.model,
-        imageUrl: d.imageUrl,
-        releaseDate: d.releaseDate || new Date().toISOString().slice(0, 10),
-        price: d.price || null,
-        pricePkr: d.pricePkr,
-        ramGb: d.ramGb,
-        storageGb: d.storageGb,
-        batteryMah: d.batteryMah,
-        screenInches: d.screenInches,
-        launchYear: d.launchYear,
-        shortSpecs: d.shortSpecs,
-        carouselImages: d.carouselImages.length > 0 ? d.carouselImages : [d.imageUrl].filter(Boolean),
-        specifications,
-        dimensions: d.dimensions,
-        buildMaterials: d.buildMaterials,
+        slug: draft.slug,
+        name: draft.name,
+        brand: draft.brand,
+        model: draft.model,
+        imageUrl: mainImage,
+        releaseDate: draft.releaseDate || new Date().toISOString().slice(0, 10),
+        price: draft.price || null,
+        pricePkr: draft.pricePkr,
+        ramGb: draft.ramGb,
+        storageGb: draft.storageGb,
+        batteryMah: draft.batteryMah,
+        screenInches: draft.screenInches,
+        launchYear: draft.launchYear,
+        shortSpecs: draft.shortSpecs,
+        carouselImages: gallery.length > 0 ? gallery : [mainImage].filter(Boolean),
+        specifications: draft.specifications,
+        dimensions: draft.dimensions,
+        buildMaterials: draft.buildMaterials,
       };
 
-      const endpoint = d.existingId ? `/api/admin/mobiles/${d.existingId}` : '/api/admin/mobiles';
-      const response = await apiRequest(endpoint, {
-        method: d.existingId ? 'PUT' : 'POST',
+      const endpoint = draft.existingId ? `/api/admin/mobiles/${draft.existingId}` : '/api/admin/mobiles';
+      await apiRequest(endpoint, {
+        method: draft.existingId ? 'PUT' : 'POST',
         body: JSON.stringify(payload),
         headers: { 'Content-Type': 'application/json' },
       });
-      return response.json();
-    },
-    onSuccess: () => {
-      setSaveMessage(draft?.existingId ? 'Mobile updated successfully.' : 'Mobile saved to database.');
+
+      setSaveMessage(
+        draft.existingId
+          ? 'Mobile updated — images copied to our storage.'
+          : 'Mobile saved — images copied to our storage.'
+      );
       setDraft(null);
       setUrl('');
+      setGalleryPicks([]);
       queryClient.invalidateQueries({ queryKey: ['/api/admin/import/status'] });
       queryClient.invalidateQueries({ queryKey: ['/api/mobiles'] });
-    },
-  });
+    } catch (error) {
+      setSaveError(error instanceof Error ? error.message : 'Failed to save');
+    } finally {
+      setSaveStage('idle');
+    }
+  };
 
   const updateDraft = (patch: Partial<UrlImportDraft>) => {
     setDraft((prev) => (prev ? { ...prev, ...patch } : prev));
@@ -136,10 +164,20 @@ function AdminImport() {
     setDraft((prev) => (prev ? { ...prev, shortSpecs: { ...prev.shortSpecs, [key]: value } } : prev));
   };
 
+  const updateSpecs = (updater: (specs: SpecCategory[]) => SpecCategory[]) => {
+    setDraft((prev) => (prev ? { ...prev, specifications: updater(prev.specifications) } : prev));
+  };
+
+  const toggleGalleryPick = (img: string) => {
+    setGalleryPicks((prev) => (prev.includes(img) ? prev.filter((u) => u !== img) : [...prev, img]));
+  };
+
   const numOrNull = (value: string) => {
     const n = parseInt(value, 10);
     return Number.isFinite(n) && n > 0 ? n : null;
   };
+
+  const busy = saveStage !== 'idle';
 
   return (
     <ProtectedAdmin>
@@ -337,66 +375,192 @@ function AdminImport() {
                 </div>
               </div>
 
+              {/* Images */}
               <div className="space-y-2">
-                <Label>Main Image URL</Label>
-                <Input value={draft.imageUrl} onChange={(e) => updateDraft({ imageUrl: e.target.value })} />
+                <Label>Images</Label>
+                <p className="text-sm text-muted-foreground">
+                  Click a photo to make it the main image (★). Tick the ones to keep in the gallery.
+                  Selected images are automatically copied to our own storage when you save.
+                </p>
                 {draft.carouselImages.length > 0 && (
-                  <div className="flex gap-2 flex-wrap pt-2">
-                    {draft.carouselImages.map((img) => (
-                      <button
-                        key={img}
-                        type="button"
-                        onClick={() => updateDraft({ imageUrl: img })}
-                        className={`border-2 rounded p-1 ${draft.imageUrl === img ? 'border-blue-500' : 'border-transparent'}`}
-                        title="Use as main image"
-                      >
-                        <img src={img} alt="" className="h-20 w-16 object-contain" loading="lazy" />
-                      </button>
-                    ))}
+                  <div className="flex gap-3 flex-wrap pt-1">
+                    {draft.carouselImages.map((img) => {
+                      const isMain = draft.imageUrl === img;
+                      const inGallery = galleryPicks.includes(img);
+                      return (
+                        <div key={img} className="relative">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              updateDraft({ imageUrl: img });
+                              if (!inGallery) toggleGalleryPick(img);
+                            }}
+                            className={`border-2 rounded p-1 ${isMain ? 'border-blue-500' : inGallery ? 'border-green-500' : 'border-transparent'}`}
+                            title="Set as main image"
+                          >
+                            <img src={img} alt="" className="h-24 w-20 object-contain" loading="lazy" />
+                          </button>
+                          {isMain && (
+                            <Star className="absolute top-1 right-1 h-4 w-4 text-blue-500 fill-blue-500" />
+                          )}
+                          <label className="absolute bottom-1 left-1 bg-white/80 rounded px-1 text-xs flex items-center gap-1 cursor-pointer">
+                            <input
+                              type="checkbox"
+                              checked={inGallery}
+                              onChange={() => toggleGalleryPick(img)}
+                            />
+                            gallery
+                          </label>
+                        </div>
+                      );
+                    })}
                   </div>
                 )}
+                <div className="space-y-1 pt-2">
+                  <Label className="text-xs text-muted-foreground">Main image URL (or paste your own)</Label>
+                  <Input value={draft.imageUrl} onChange={(e) => updateDraft({ imageUrl: e.target.value })} />
+                </div>
               </div>
 
-              <div className="space-y-2">
-                <Label>Specifications (JSON — edit if needed)</Label>
-                <Textarea
-                  value={specsJson}
-                  onChange={(e) => setSpecsJson(e.target.value)}
-                  rows={14}
-                  className="font-mono text-xs"
-                />
-                {specsJsonError && <p className="text-sm text-red-600">{specsJsonError}</p>}
+              {/* Specifications table editor */}
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <Label>Specifications</Label>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() =>
+                      updateSpecs((specs) => [...specs, { category: 'New Category', specs: [{ feature: '', value: '' }] }])
+                    }
+                  >
+                    <Plus className="h-4 w-4 mr-1" /> Add Category
+                  </Button>
+                </div>
+                {draft.specifications.map((cat, catIndex) => (
+                  <div key={catIndex} className="border rounded-lg p-3 space-y-2">
+                    <div className="flex items-center gap-2">
+                      <Input
+                        className="font-medium max-w-xs"
+                        value={cat.category}
+                        onChange={(e) =>
+                          updateSpecs((specs) =>
+                            specs.map((c, i) => (i === catIndex ? { ...c, category: e.target.value } : c))
+                          )
+                        }
+                      />
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => updateSpecs((specs) => specs.filter((_, i) => i !== catIndex))}
+                        title="Remove category"
+                      >
+                        <Trash2 className="h-4 w-4 text-red-500" />
+                      </Button>
+                    </div>
+                    {cat.specs.map((spec, specIndex) => (
+                      <div key={specIndex} className="flex gap-2 items-center">
+                        <Input
+                          placeholder="Feature (e.g. Chipset)"
+                          className="max-w-[200px]"
+                          value={spec.feature}
+                          onChange={(e) =>
+                            updateSpecs((specs) =>
+                              specs.map((c, i) =>
+                                i === catIndex
+                                  ? {
+                                      ...c,
+                                      specs: c.specs.map((s, j) =>
+                                        j === specIndex ? { ...s, feature: e.target.value } : s
+                                      ),
+                                    }
+                                  : c
+                              )
+                            )
+                          }
+                        />
+                        <Input
+                          placeholder="Value (e.g. Snapdragon 8 Gen 3)"
+                          value={spec.value}
+                          onChange={(e) =>
+                            updateSpecs((specs) =>
+                              specs.map((c, i) =>
+                                i === catIndex
+                                  ? {
+                                      ...c,
+                                      specs: c.specs.map((s, j) =>
+                                        j === specIndex ? { ...s, value: e.target.value } : s
+                                      ),
+                                    }
+                                  : c
+                              )
+                            )
+                          }
+                        />
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={() =>
+                            updateSpecs((specs) =>
+                              specs.map((c, i) =>
+                                i === catIndex ? { ...c, specs: c.specs.filter((_, j) => j !== specIndex) } : c
+                              )
+                            )
+                          }
+                          title="Remove row"
+                        >
+                          <Trash2 className="h-4 w-4 text-muted-foreground" />
+                        </Button>
+                      </div>
+                    ))}
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() =>
+                        updateSpecs((specs) =>
+                          specs.map((c, i) =>
+                            i === catIndex ? { ...c, specs: [...c.specs, { feature: '', value: '' }] } : c
+                          )
+                        )
+                      }
+                    >
+                      <Plus className="h-4 w-4 mr-1" /> Add Row
+                    </Button>
+                  </div>
+                ))}
               </div>
 
               <div className="text-xs text-muted-foreground">
                 Source: <a href={draft.sourceUrl} target="_blank" rel="noreferrer" className="underline">{draft.sourceUrl}</a>
               </div>
 
-              {saveMutation.isError && !specsJsonError && (
+              {saveError && (
                 <Alert className="border-red-500">
-                  <AlertDescription className="text-red-600">{saveMutation.error.message}</AlertDescription>
+                  <AlertDescription className="text-red-600">{saveError}</AlertDescription>
                 </Alert>
               )}
 
-              <div className="flex gap-2">
-                <Button
-                  onClick={() => saveMutation.mutate(draft)}
-                  disabled={saveMutation.isPending || !draft.name || !draft.brand || !draft.imageUrl}
-                >
-                  {saveMutation.isPending ? (
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  ) : (
-                    <Save className="mr-2 h-4 w-4" />
-                  )}
-                  {draft.existingId ? 'Update Existing Mobile' : 'Save to Database'}
+              <div className="flex gap-2 items-center">
+                <Button onClick={handleSave} disabled={busy || !draft.name || !draft.brand || !draft.imageUrl}>
+                  {busy ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
+                  {saveStage === 'copying-images'
+                    ? 'Copying images to our server...'
+                    : saveStage === 'saving'
+                      ? 'Saving...'
+                      : draft.existingId
+                        ? 'Update Existing Mobile'
+                        : 'Save to Database'}
                 </Button>
-                <Button variant="outline" onClick={() => setDraft(null)} disabled={saveMutation.isPending}>
+                <Button variant="outline" onClick={() => setDraft(null)} disabled={busy}>
                   Discard
                 </Button>
               </div>
               {!draft.imageUrl && (
                 <p className="text-sm text-yellow-600">
-                  A main image URL is required before saving — pick one above or paste one in.
+                  A main image is required before saving — click one above or paste a URL.
                 </p>
               )}
             </CardContent>

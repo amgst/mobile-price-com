@@ -9,7 +9,7 @@ import { generateSitemapEntries, generateSitemapXML } from "../../client/src/com
 import jwt from 'jsonwebtoken';
 import { createPresignedUpload, uploadBufferToR2 } from "../../server/r2.ts";
 import { aiService } from "../../server/ai-service.ts";
-import { extractDraftFromUrl } from "../../server/data-import/url-import-service.ts";
+import { extractDraftFromUrl, mirrorImagesToR2 } from "../../server/data-import/url-import-service.ts";
 
 // Database connection
 const createDbConnection = () => {
@@ -432,6 +432,22 @@ Crawl-delay: 1`;
       } catch (error: any) {
         console.error('URL import failed:', error);
         return response(500, { message: error?.message || 'Failed to import from URL' });
+      }
+    }
+
+    // Copy externally-hosted images into our R2 bucket; returns source→R2 URL pairs.
+    if (path === '/admin/import/mirror-images' && method === 'POST') {
+      const body = JSON.parse(event.body || '{}');
+      const urls = Array.isArray(body.urls) ? body.urls.filter((u: unknown) => typeof u === 'string') : [];
+      if (urls.length === 0) {
+        return response(400, { message: 'urls array is required' });
+      }
+      try {
+        const mirrored = await mirrorImagesToR2(urls);
+        return response(200, { mirrored });
+      } catch (error: any) {
+        console.error('Image mirroring failed:', error);
+        return response(500, { message: error?.message || 'Failed to copy images' });
       }
     }
 

@@ -1,6 +1,6 @@
 import { isCloudflareAIAvailable, generateText } from "../cloudflare-ai.js";
 import { repairTruncatedJson } from "../ai-service.js";
-import { storage } from "../storage.js";
+import { uploadBufferToR2 } from "../r2.js";
 
 export interface UrlImportDraft {
   name: string;
@@ -183,7 +183,10 @@ function toInt(value: unknown): number | null {
   return null;
 }
 
+// storage is imported lazily so the Netlify function (which has its own db
+// connection) can bundle the extraction helpers without dragging in server/db.ts.
 async function ensureBrand(brandSlug: string): Promise<string> {
+  const { storage } = await import("../storage.js");
   const allBrands = await storage.getAllBrands();
   const matched = allBrands.find(
     (b) => b.slug === brandSlug || b.name.toLowerCase() === brandSlug.replace(/-/g, " ")
@@ -203,6 +206,44 @@ async function ensureBrand(brandSlug: string): Promise<string> {
     isVisible: true,
   });
   return brandSlug;
+}
+
+// Download external images and re-upload them to our R2 bucket so saved mobiles
+// never hotlink another site's images. Failures are skipped, not fatal.
+export async function mirrorImagesToR2(urls: string[]): Promise<{ source: string; url: string }[]> {
+  const mirrored: { source: string; url: string }[] = [];
+
+  for (const source of urls.slice(0, 8)) {
+    try {
+      const res = await fetch(source, {
+        headers: {
+          "User-Agent":
+            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36",
+        },
+        redirect: "follow",
+        signal: AbortSignal.timeout(15000),
+      });
+      if (!res.ok) continue;
+
+      const contentType = res.headers.get("content-type") || "";
+      if (!contentType.startsWith("image/")) continue;
+
+      const buffer = Buffer.from(await res.arrayBuffer());
+      if (buffer.length === 0 || buffer.length > 8 * 1024 * 1024) continue;
+
+      const extension = contentType.includes("png")
+        ? "png"
+        : contentType.includes("webp")
+          ? "webp"
+          : "jpg";
+      const url = await uploadBufferToR2(buffer, contentType, extension, "mobiles");
+      mirrored.push({ source, url });
+    } catch (error) {
+      console.error(`Failed to mirror image ${source}:`, error);
+    }
+  }
+
+  return mirrored;
 }
 
 // DB-free draft extraction: fetch + AI + parse only, so it can run both in the
@@ -345,6 +386,7 @@ ${pageText}
 // Full import flow for the Express server: extraction plus brand auto-create
 // and duplicate detection via storage.
 export async function importFromUrl(url: string): Promise<UrlImportDraft> {
+  const { storage } = await import("../storage.js");
   const draft = await extractDraftFromUrl(url);
   const brandSlug = await ensureBrand(draft.brand);
   const existing = await storage.getMobileBySlug(brandSlug, draft.slug);

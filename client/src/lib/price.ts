@@ -6,5 +6,6 @@ export function formatMobilePrice(mobile: Pick<Mobile, "price" | "pricePkr">): s
   if (mobile.pricePkr) {
     return `Rs ${mobile.pricePkr.toLocaleString("en-US")}`;
   }
-  return mobile.price || "";
+  // Drop cents/fractions from imported price text: "$444.57" -> "$444"
+  return (mobile.price || "").replace(/(\d)\.\d+/g, "$1");
 }

@@ -37,7 +37,8 @@ export function MobileCard({ mobile }: MobileCardProps) {
           <SafeImage
             src={imageSources}
             alt={mobile.name}
-            className="w-full h-full object-contain transition-transform duration-300 hover:scale-105"
+            className="w-full h-full transition-transform duration-300 hover:scale-105"
+            objectFit="contain"
             loading="lazy"
             quality="medium"
             placeholder={ImageUtils.generatePlaceholder(mobile.imageUrl)}
@@ -59,8 +60,11 @@ export function MobileCard({ mobile }: MobileCardProps) {
           <h3 className="font-semibold text-gray-900 mb-2 line-clamp-2" title={mobile.name}>
             {mobile.name}
           </h3>
-          <div className="text-lg font-bold text-green-600 mb-3">
-            {formatMobilePrice(mobile)}
+          <div className="mb-3">
+            <div className="text-lg font-bold text-green-600">
+              {formatMobilePrice(mobile)}
+            </div>
+            <div className="text-[11px] text-gray-400 leading-tight">approximately</div>
           </div>
 
           {/* Key Specs */}

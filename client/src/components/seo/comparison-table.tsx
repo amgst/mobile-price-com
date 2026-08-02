@@ -61,7 +61,10 @@ export function ComparisonTable({ mobile, relatedMobiles, title = "Compare Simil
                   <td className="p-4 font-medium text-gray-900">Price in Pakistan</td>
                   {allMobiles.map((m) => (
                     <td key={m.id} className="p-4 text-center">
-                      <span className="font-bold text-green-600">{formatMobilePrice(m)}</span>
+                      <div>
+                        <span className="font-bold text-green-600">{formatMobilePrice(m)}</span>
+                        <div className="text-[11px] text-gray-400">approximately</div>
+                      </div>
                     </td>
                   ))}
                 </tr>

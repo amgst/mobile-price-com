@@ -134,8 +134,11 @@ export function MobileHero({ mobile }: MobileHeroProps) {
                 <Badge className="mb-2">{mobile.brand}</Badge>
               </div>
               <h1 className="text-3xl font-bold text-gray-900 mb-2">{mobile.name} Price in Pakistan (Updated 2025)</h1>
-              <div className="text-4xl font-bold text-green-600 mb-6" data-testid="mobile-price">
-                {formatMobilePrice(mobile)}
+              <div className="mb-6">
+                <div className="text-4xl font-bold text-green-600" data-testid="mobile-price">
+                  {formatMobilePrice(mobile)}
+                </div>
+                <div className="text-xs text-gray-400 mt-1">approximately</div>
               </div>
 
               {/* Key Features */}

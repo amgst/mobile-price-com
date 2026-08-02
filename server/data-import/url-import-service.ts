@@ -205,7 +205,9 @@ async function ensureBrand(brandSlug: string): Promise<string> {
   return brandSlug;
 }
 
-export async function importFromUrl(url: string): Promise<UrlImportDraft> {
+// DB-free draft extraction: fetch + AI + parse only, so it can run both in the
+// Express server (with storage) and in the Netlify function (with its own db).
+export async function extractDraftFromUrl(url: string): Promise<Omit<UrlImportDraft, "alreadyExists" | "existingId">> {
   if (!isCloudflareAIAvailable()) {
     throw new Error(
       "URL import needs Cloudflare Workers AI. Set CLOUDFLARE_ACCOUNT_ID and CLOUDFLARE_API_TOKEN in .env."
@@ -286,9 +288,8 @@ ${pageText}
     throw new Error("Could not identify a phone name on this page.");
   }
 
-  const brandSlug = await ensureBrand(toSlug(parsed.brand || name.split(/\s+/)[0]));
+  const brandSlug = toSlug(parsed.brand || name.split(/\s+/)[0]);
   const slug = toSlug(name);
-  const existing = await storage.getMobileBySlug(brandSlug, slug);
 
   const screenRaw = parsed.screenInches;
   const screenInches =
@@ -338,6 +339,19 @@ ${pageText}
       protection: parsed.buildMaterials?.protection || "",
     },
     sourceUrl: url,
+  };
+}
+
+// Full import flow for the Express server: extraction plus brand auto-create
+// and duplicate detection via storage.
+export async function importFromUrl(url: string): Promise<UrlImportDraft> {
+  const draft = await extractDraftFromUrl(url);
+  const brandSlug = await ensureBrand(draft.brand);
+  const existing = await storage.getMobileBySlug(brandSlug, draft.slug);
+
+  return {
+    ...draft,
+    brand: brandSlug,
     alreadyExists: !!existing,
     existingId: existing?.id ?? null,
   };

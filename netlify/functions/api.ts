@@ -9,6 +9,7 @@ import { generateSitemapEntries, generateSitemapXML } from "../../client/src/com
 import jwt from 'jsonwebtoken';
 import { createPresignedUpload, uploadBufferToR2 } from "../../server/r2.ts";
 import { aiService } from "../../server/ai-service.ts";
+import { extractDraftFromUrl } from "../../server/data-import/url-import-service.ts";
 
 // Database connection
 const createDbConnection = () => {
@@ -372,6 +373,68 @@ Crawl-delay: 1`;
     }
 
     // Create mobile
+    if (path === '/admin/import/status' && method === 'GET') {
+      const [brandRows, mobileRows] = await Promise.all([
+        db.select({ count: sql<number>`count(*)` }).from(brands),
+        db.select({ count: sql<number>`count(*)` }).from(mobiles),
+      ]);
+      return response(200, {
+        totalBrands: Number(brandRows[0]?.count ?? 0),
+        totalMobiles: Number(mobileRows[0]?.count ?? 0),
+      });
+    }
+
+    // Import a mobile from an external page URL: fetch the page, extract specs with AI,
+    // and return an editable draft. Nothing is saved until the admin reviews and submits it.
+    if (path === '/admin/import/url' && method === 'POST') {
+      const body = JSON.parse(event.body || '{}');
+      const url = typeof body.url === 'string' ? body.url.trim() : '';
+      if (!url) {
+        return response(400, { message: 'url is required' });
+      }
+      try {
+        const draft = await extractDraftFromUrl(url);
+
+        // Resolve the extracted brand against real brands, auto-creating one if needed.
+        let brandSlug = draft.brand;
+        const allBrands = await db.select().from(brands);
+        const matched = allBrands.find(
+          (b) => b.slug === brandSlug || b.name.toLowerCase() === brandSlug.replace(/-/g, ' ')
+        );
+        if (matched) {
+          brandSlug = matched.slug;
+        } else {
+          const brandName = brandSlug
+            .split('-')
+            .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+            .join(' ');
+          await db.insert(brands).values({
+            name: brandName,
+            slug: brandSlug,
+            logo: brandName.charAt(0),
+            phoneCount: '0',
+            description: `${brandName} mobile phones`,
+            isVisible: true,
+          });
+        }
+
+        const [existing] = await db
+          .select({ id: mobiles.id })
+          .from(mobiles)
+          .where(and(eq(mobiles.brand, brandSlug), eq(mobiles.slug, draft.slug)));
+
+        return response(200, {
+          ...draft,
+          brand: brandSlug,
+          alreadyExists: !!existing,
+          existingId: existing?.id ?? null,
+        });
+      } catch (error: any) {
+        console.error('URL import failed:', error);
+        return response(500, { message: error?.message || 'Failed to import from URL' });
+      }
+    }
+
     if (path === '/admin/mobiles' && method === 'POST') {
       const body = JSON.parse(event.body || '{}');
       try {

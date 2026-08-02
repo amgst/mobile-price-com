@@ -5,7 +5,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { SafeImage } from "@/components/ui/safe-image";
 import { useCompare } from "@/hooks/use-compare";
 import { ImageUtils } from "@/lib/image-utils";
-import { formatCompactCamera, formatCompactDisplay, formatCompactProcessor } from "@/lib/text-utils";
+import { formatCompactCamera, formatCompactDisplay, formatCompactProcessor, hasMoreDetail } from "@/lib/text-utils";
 import { formatMobilePrice } from "@/lib/price";
 import {
   Heart,
@@ -143,61 +143,73 @@ export function MobileHero({ mobile }: MobileHeroProps) {
 
               {/* Key Features */}
               <div className="space-y-4 mb-6">
-                {mobile.shortSpecs.display && (
-                  <div className="py-2 border-b border-gray-100 dark:border-gray-700">
-                    <div className="flex items-center justify-between">
-                      <span className="text-gray-600 dark:text-gray-300">Display</span>
-                      <div className="flex items-center gap-2">
-                        <span className="font-medium text-right">
-                          {expandedSpecs.display ? (
-                            <span dangerouslySetInnerHTML={{ __html: mobile.shortSpecs.display }} />
-                          ) : (
-                            formatCompactDisplay(mobile.shortSpecs.display)
+                {mobile.shortSpecs.display && (() => {
+                  const compactDisplay = formatCompactDisplay(mobile.shortSpecs.display);
+                  const displayHasMore = hasMoreDetail(mobile.shortSpecs.display, compactDisplay);
+                  return (
+                    <div className="py-2 border-b border-gray-100 dark:border-gray-700">
+                      <div className="flex items-center justify-between">
+                        <span className="text-gray-600 dark:text-gray-300">Display</span>
+                        <div className="flex items-center gap-2">
+                          <span className="font-medium text-right">
+                            {expandedSpecs.display ? (
+                              <span dangerouslySetInnerHTML={{ __html: mobile.shortSpecs.display }} />
+                            ) : (
+                              compactDisplay
+                            )}
+                          </span>
+                          {displayHasMore && (
+                            <button
+                              onClick={() => toggleSpecExpansion('display')}
+                              className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+                              title={expandedSpecs.display ? "Show less" : "Show more"}
+                            >
+                              {expandedSpecs.display ? (
+                                <ChevronUp className="h-4 w-4" />
+                              ) : (
+                                <ChevronDown className="h-4 w-4" />
+                              )}
+                            </button>
                           )}
-                        </span>
-                        <button
-                          onClick={() => toggleSpecExpansion('display')}
-                          className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
-                          title={expandedSpecs.display ? "Show less" : "Show more"}
-                        >
-                          {expandedSpecs.display ? (
-                            <ChevronUp className="h-4 w-4" />
-                          ) : (
-                            <ChevronDown className="h-4 w-4" />
-                          )}
-                        </button>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                )}
-                
-                {mobile.shortSpecs.processor && (
-                  <div className="py-2 border-b border-gray-100 dark:border-gray-700">
-                    <div className="flex items-center justify-between">
-                      <span className="text-gray-600 dark:text-gray-300">Processor</span>
-                      <div className="flex items-center gap-2">
-                        <span className="font-medium text-right">
-                          {expandedSpecs.processor ? (
-                            mobile.shortSpecs.processor
-                          ) : (
-                            formatCompactProcessor(mobile.shortSpecs.processor)
+                  );
+                })()}
+
+                {mobile.shortSpecs.processor && (() => {
+                  const compactProcessor = formatCompactProcessor(mobile.shortSpecs.processor);
+                  const processorHasMore = hasMoreDetail(mobile.shortSpecs.processor, compactProcessor);
+                  return (
+                    <div className="py-2 border-b border-gray-100 dark:border-gray-700">
+                      <div className="flex items-center justify-between">
+                        <span className="text-gray-600 dark:text-gray-300">Processor</span>
+                        <div className="flex items-center gap-2">
+                          <span className="font-medium text-right">
+                            {expandedSpecs.processor ? (
+                              mobile.shortSpecs.processor
+                            ) : (
+                              compactProcessor
+                            )}
+                          </span>
+                          {processorHasMore && (
+                            <button
+                              onClick={() => toggleSpecExpansion('processor')}
+                              className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+                              title={expandedSpecs.processor ? "Show less" : "Show more"}
+                            >
+                              {expandedSpecs.processor ? (
+                                <ChevronUp className="h-4 w-4" />
+                              ) : (
+                                <ChevronDown className="h-4 w-4" />
+                              )}
+                            </button>
                           )}
-                        </span>
-                        <button
-                          onClick={() => toggleSpecExpansion('processor')}
-                          className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
-                          title={expandedSpecs.processor ? "Show less" : "Show more"}
-                        >
-                          {expandedSpecs.processor ? (
-                            <ChevronUp className="h-4 w-4" />
-                          ) : (
-                            <ChevronDown className="h-4 w-4" />
-                          )}
-                        </button>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                )}
+                  );
+                })()}
                 
                 <div className="flex items-center justify-between py-2 border-b border-gray-100 dark:border-gray-700">
                   <span className="text-gray-600 dark:text-gray-300">RAM</span>
@@ -209,31 +221,39 @@ export function MobileHero({ mobile }: MobileHeroProps) {
                   <span className="font-medium">{mobile.shortSpecs.storage}</span>
                 </div>
                 
-                <div className="py-2 border-b border-gray-100 dark:border-gray-700">
-                  <div className="flex items-center justify-between">
-                    <span className="text-gray-600 dark:text-gray-300">Main Camera</span>
-                    <div className="flex items-center gap-2">
-                      <span className="font-medium text-right">
-                        {expandedSpecs.camera ? (
-                          <span dangerouslySetInnerHTML={{ __html: mobile.shortSpecs.camera }} />
-                        ) : (
-                          formatCompactCamera(mobile.shortSpecs.camera)
-                        )}
-                      </span>
-                      <button
-                        onClick={() => toggleSpecExpansion('camera')}
-                        className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
-                        title={expandedSpecs.camera ? "Show less" : "Show more"}
-                      >
-                        {expandedSpecs.camera ? (
-                          <ChevronUp className="h-4 w-4" />
-                        ) : (
-                          <ChevronDown className="h-4 w-4" />
-                        )}
-                      </button>
+                {(() => {
+                  const compactCamera = formatCompactCamera(mobile.shortSpecs.camera);
+                  const cameraHasMore = hasMoreDetail(mobile.shortSpecs.camera, compactCamera);
+                  return (
+                    <div className="py-2 border-b border-gray-100 dark:border-gray-700">
+                      <div className="flex items-center justify-between">
+                        <span className="text-gray-600 dark:text-gray-300">Main Camera</span>
+                        <div className="flex items-center gap-2">
+                          <span className="font-medium text-right">
+                            {expandedSpecs.camera ? (
+                              <span dangerouslySetInnerHTML={{ __html: mobile.shortSpecs.camera }} />
+                            ) : (
+                              compactCamera
+                            )}
+                          </span>
+                          {cameraHasMore && (
+                            <button
+                              onClick={() => toggleSpecExpansion('camera')}
+                              className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+                              title={expandedSpecs.camera ? "Show less" : "Show more"}
+                            >
+                              {expandedSpecs.camera ? (
+                                <ChevronUp className="h-4 w-4" />
+                              ) : (
+                                <ChevronDown className="h-4 w-4" />
+                              )}
+                            </button>
+                          )}
+                        </div>
+                      </div>
                     </div>
-                  </div>
-                </div>
+                  );
+                })()}
 
                 {/* Actions */}
                 <div className="flex items-center gap-3 mt-4">

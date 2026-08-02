@@ -13,6 +13,20 @@ export function truncateText(text: string, maxLength: number): string {
 }
 
 /**
+ * Whether expanding a compact spec value would reveal meaningfully more
+ * information than is already shown. Short specs like "6.9 inches" reformat
+ * down to "6.9\"" with no real information lost — only text that got
+ * genuinely summarized (long HTML spec blocks, multi-line camera lists, etc.)
+ * should offer an expand control.
+ */
+export function hasMoreDetail(rawText: string, compactText: string, buffer = 8): boolean {
+  if (!rawText) return false;
+  const cleanRaw = rawText.replace(/<[^>]*>/g, '').replace(/\s+/g, ' ').trim();
+  const cleanCompact = (compactText || '').replace(/\s+/g, ' ').trim();
+  return cleanRaw.length > cleanCompact.length + buffer;
+}
+
+/**
  * Extracts main camera megapixels from camera specification text
  */
 export function extractMainCamera(cameraText: string): string {

@@ -185,6 +185,30 @@ function toInt(value: unknown): number | null {
 
 // storage is imported lazily so the Netlify function (which has its own db
 // connection) can bundle the extraction helpers without dragging in server/db.ts.
+// The site displays PKR only. USD prices from foreign spec sites are converted
+// at a live rate (cached 12h; fallback constant if the rate API is down) and
+// rounded to the nearest 1,000 — the UI labels all prices "approximately".
+let cachedRate: { rate: number; fetchedAt: number } | null = null;
+async function usdToPkrRate(): Promise<number> {
+  if (cachedRate && Date.now() - cachedRate.fetchedAt < 12 * 3600_000) {
+    return cachedRate.rate;
+  }
+  try {
+    const res = await fetch("https://open.er-api.com/v6/latest/USD", {
+      signal: AbortSignal.timeout(8000),
+    });
+    const data: any = await res.json();
+    const rate = data?.rates?.PKR;
+    if (typeof rate === "number" && rate > 0) {
+      cachedRate = { rate, fetchedAt: Date.now() };
+      return rate;
+    }
+  } catch (error) {
+    console.error("USD→PKR rate fetch failed, using fallback:", error);
+  }
+  return 278;
+}
+
 async function ensureBrand(brandSlug: string): Promise<string> {
   const { storage } = await import("../storage.js");
   const allBrands = await storage.getAllBrands();
@@ -342,6 +366,15 @@ ${pageText}
   const sourceHost = new URL(url).hostname;
   if (!pricePkr && sourceHost.endsWith(".pk") && /₹|Rs\.?\s*[\d,]+/i.test(rawPrice)) {
     pricePkr = toInt(rawPrice);
+  }
+  if (!pricePkr) {
+    const usdMatch = rawPrice.match(/\$\s*([\d,]+(?:\.\d+)?)/);
+    if (usdMatch) {
+      const usd = parseFloat(usdMatch[1].replace(/,/g, ""));
+      if (usd > 0) {
+        pricePkr = Math.round((usd * (await usdToPkrRate())) / 1000) * 1000;
+      }
+    }
   }
   const price = pricePkr ? `Rs ${pricePkr.toLocaleString("en-US")}` : rawPrice;
 

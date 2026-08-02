@@ -6,7 +6,7 @@ const openai = process.env.OPENAI_API_KEY ? new OpenAI({ apiKey: process.env.OPE
 
 // Best-effort repair for JSON truncated mid-generation (e.g. a text model hitting its token limit):
 // closes any string left open and appends closing brackets for any objects/arrays left open.
-function repairTruncatedJson(text: string): string {
+export function repairTruncatedJson(text: string): string {
   const stack: string[] = [];
   let inString = false;
   let escaped = false;

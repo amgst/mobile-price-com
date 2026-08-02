@@ -13,7 +13,6 @@ import {
   handleJWTLogout, 
   checkJWTAuthStatus 
 } from "./jwt-auth-middleware.js";
-import { importScheduler } from "./data-import/scheduler.js";
 import { z } from "zod";
 
 function mapDatabaseError(error: any, fallbackMessage: string) {
@@ -62,12 +61,6 @@ function mapDatabaseError(error: any, fallbackMessage: string) {
 }
 
 export async function registerRoutes(app: Express): Promise<Server> {
-  // Start daily mobile data import scheduler in production
-  if (process.env.NODE_ENV === 'production') {
-    console.log('🚀 Starting daily mobile data import scheduler...');
-    importScheduler.startDailyImports();
-  }
-
   // Auth routes (public)
   app.post("/api/auth/login", handleJWTLogin);
   app.post("/api/auth/logout", handleJWTLogout);
@@ -235,98 +228,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Data Import Routes
-  app.post("/api/admin/import/brands", async (req, res) => {
-    try {
-      const { ImportService } = await import("./data-import/import-service");
-      const importService = new ImportService();
-      const results = await importService.importBrands();
-      res.json(results);
-    } catch (error) {
-      console.error("Brand import failed:", error);
-      res.status(500).json({ message: "Failed to import brands", error: error instanceof Error ? error.message : "Unknown error" });
-    }
-  });
-
-  app.post("/api/admin/import/latest", async (req, res) => {
-    try {
-      const limit = parseInt(req.query.limit as string) || 50;
-      const { ImportService } = await import("./data-import/import-service");
-      const importService = new ImportService();
-      const results = await importService.importLatestMobiles(limit);
-      res.json(results);
-    } catch (error) {
-      console.error("Latest mobiles import failed:", error);
-      res.status(500).json({ message: "Failed to import latest mobiles", error: error instanceof Error ? error.message : "Unknown error" });
-    }
-  });
-
-  app.post("/api/admin/import/brand/:brandName", async (req, res) => {
-    try {
-      const brandName = req.params.brandName;
-      const limit = parseInt(req.query.limit as string) || 20;
-      const { ImportService } = await import("./data-import/import-service");
-      const importService = new ImportService();
-      const results = await importService.importMobilesByBrand(brandName, limit);
-      res.json(results);
-    } catch (error) {
-      console.error(`Brand ${req.params.brandName} import failed:`, error);
-      res.status(500).json({ message: `Failed to import mobiles for brand ${req.params.brandName}`, error: error instanceof Error ? error.message : "Unknown error" });
-    }
-  });
-
-  app.post("/api/admin/import/popular", async (req, res) => {
-    try {
-      const { ImportService } = await import("./data-import/import-service");
-      const importService = new ImportService();
-      const results = await importService.importPopularBrands();
-      res.json(results);
-    } catch (error) {
-      console.error("Popular brands import failed:", error);
-      res.status(500).json({ message: "Failed to import popular brands", error: error instanceof Error ? error.message : "Unknown error" });
-    }
-  });
-
-  app.post("/api/admin/import/search", async (req, res) => {
-    try {
-      const { query, limit = 10 } = req.body;
-      if (!query) {
-        return res.status(400).json({ message: "Query parameter is required" });
-      }
-      const { ImportService } = await import("./data-import/import-service");
-      const importService = new ImportService();
-      const results = await importService.searchAndImportMobiles(query, limit);
-      res.json(results);
-    } catch (error) {
-      console.error("Search import failed:", error);
-      res.status(500).json({ message: "Failed to import searched mobiles", error: error instanceof Error ? error.message : "Unknown error" });
-    }
-  });
-
   app.get("/api/admin/import/status", async (req, res) => {
     try {
-      const { ImportService } = await import("./data-import/import-service");
-      const importService = new ImportService();
-      const status = await importService.getImportStatus();
-      res.json(status);
+      const [brands, mobiles] = await Promise.all([
+        storage.getAllBrands(),
+        storage.getAllMobiles(),
+      ]);
+      res.json({ totalBrands: brands.length, totalMobiles: mobiles.length });
     } catch (error) {
       console.error("Import status failed:", error);
       res.status(500).json({ message: "Failed to get import status", error: error instanceof Error ? error.message : "Unknown error" });
     }
   });
 
-  // Get scheduler status
-  app.get("/api/admin/scheduler/status", async (req, res) => {
+  // Import a mobile from an external page URL: fetch the page, extract specs with AI,
+  // and return an editable draft. Nothing is saved until the admin reviews and submits it.
+  app.post("/api/admin/import/url", async (req, res) => {
     try {
-      const status = importScheduler.getStatus();
-      res.json({
-        isRunning: status.isRunning,
-        nextRun: status.nextRun,
-        environment: process.env.NODE_ENV,
-        message: status.isRunning ? "Daily scheduler is active and will import 20 latest mobiles daily" : "Daily scheduler is not running"
-      });
+      const { url } = req.body;
+      if (!url || typeof url !== "string") {
+        return res.status(400).json({ message: "url is required" });
+      }
+      const { importFromUrl } = await import("./data-import/url-import-service.js");
+      const draft = await importFromUrl(url.trim());
+      res.json(draft);
     } catch (error) {
-      console.error("Scheduler status check failed:", error);
-      res.status(500).json({ message: "Failed to get scheduler status" });
+      console.error("URL import failed:", error);
+      res.status(500).json({ message: error instanceof Error ? error.message : "Failed to import from URL" });
     }
   });
 

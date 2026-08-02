@@ -6,364 +6,405 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
-import { Loader2, Download, Database, Search, TrendingUp, Building } from 'lucide-react';
+import { Textarea } from '@/components/ui/textarea';
+import { Loader2, Database, Link2, Save } from 'lucide-react';
 import { apiRequest } from '@/lib/queryClient';
 import { ProtectedAdmin } from '@/components/admin/protected-admin';
-
-interface ImportResult {
-  success: number;
-  errors: string[];
-  existing?: number;
-  processed?: number;
-}
 
 interface ImportStatus {
   totalBrands: number;
   totalMobiles: number;
-  lastImport: string;
+}
+
+interface ShortSpecs {
+  ram: string;
+  storage: string;
+  camera: string;
+  battery?: string;
+  display?: string;
+  processor?: string;
+}
+
+interface UrlImportDraft {
+  name: string;
+  slug: string;
+  brand: string;
+  model: string;
+  releaseDate: string;
+  price: string;
+  pricePkr: number | null;
+  ramGb: number | null;
+  storageGb: number | null;
+  batteryMah: number | null;
+  screenInches: string | null;
+  launchYear: number | null;
+  imageUrl: string;
+  carouselImages: string[];
+  shortSpecs: ShortSpecs;
+  specifications: { category: string; specs: { feature: string; value: string }[] }[];
+  dimensions: { height: string; width: string; thickness: string; weight: string };
+  buildMaterials: { frame: string; back: string; protection: string };
+  sourceUrl: string;
+  alreadyExists: boolean;
+  existingId: string | null;
 }
 
 function AdminImport() {
-  const [searchQuery, setSearchQuery] = useState('');
-  const [brandName, setBrandName] = useState('');
-  const [importLimit, setImportLimit] = useState(50);
+  const [url, setUrl] = useState('');
+  const [draft, setDraft] = useState<UrlImportDraft | null>(null);
+  const [specsJson, setSpecsJson] = useState('');
+  const [specsJsonError, setSpecsJsonError] = useState('');
+  const [saveMessage, setSaveMessage] = useState('');
 
   const queryClient = useQueryClient();
 
-  // Get import status
   const { data: status, isLoading: statusLoading } = useQuery<ImportStatus>({
     queryKey: ['/api/admin/import/status'],
-    refetchInterval: 30000 // Refresh every 30 seconds
   });
 
-  // Import mutations
-  const importLatestMutation = useMutation<ImportResult, Error, number>({
-    mutationFn: async (limit: number) => {
-      const response = await apiRequest(`/api/admin/import/latest?limit=${limit}`, { method: 'POST' });
-      return response as ImportResult;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/admin/import/status'] });
-      queryClient.invalidateQueries({ queryKey: ['/api/mobiles'] });
-    }
-  });
-
-  const importBrandsMutation = useMutation<ImportResult, Error, void>({
-    mutationFn: async () => {
-      const response = await apiRequest('/api/admin/import/brands', { method: 'POST' });
-      return response as ImportResult;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/admin/import/status'] });
-      queryClient.invalidateQueries({ queryKey: ['/api/brands'] });
-    }
-  });
-
-  const importPopularMutation = useMutation<ImportResult, Error, void>({
-    mutationFn: async () => {
-      const response = await apiRequest('/api/admin/import/popular', { method: 'POST' });
-      return response as ImportResult;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/admin/import/status'] });
-      queryClient.invalidateQueries({ queryKey: ['/api/mobiles'] });
-    }
-  });
-
-  const importBrandMutation = useMutation<ImportResult, Error, { brand: string; limit: number }>({
-    mutationFn: async ({ brand, limit }) => {
-      const response = await apiRequest(`/api/admin/import/brand/${encodeURIComponent(brand)}?limit=${limit}`, { method: 'POST' });
-      return response as ImportResult;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/admin/import/status'] });
-      queryClient.invalidateQueries({ queryKey: ['/api/mobiles'] });
-    }
-  });
-
-  const searchImportMutation = useMutation<ImportResult, Error, { query: string; limit: number }>({
-    mutationFn: async ({ query, limit }) => {
-      const response = await apiRequest('/api/admin/import/search', { 
+  const extractMutation = useMutation<UrlImportDraft, Error, string>({
+    mutationFn: async (pageUrl: string) => {
+      const response = await apiRequest('/api/admin/import/url', {
         method: 'POST',
-        body: JSON.stringify({ query, limit }),
-        headers: { 'Content-Type': 'application/json' }
+        body: JSON.stringify({ url: pageUrl }),
+        headers: { 'Content-Type': 'application/json' },
       });
-      return response as ImportResult;
+      return response.json();
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/admin/import/status'] });
-      queryClient.invalidateQueries({ queryKey: ['/api/mobiles'] });
-    }
+    onSuccess: (data) => {
+      setDraft(data);
+      setSpecsJson(JSON.stringify(data.specifications, null, 2));
+      setSpecsJsonError('');
+      setSaveMessage('');
+    },
   });
 
-  const renderImportResult = (result: ImportResult | undefined, isLoading: boolean, title: string) => {
-    if (isLoading) {
-      return (
-        <Alert>
-          <Loader2 className="h-4 w-4 animate-spin" />
-          <AlertDescription>Importing {title.toLowerCase()}...</AlertDescription>
-        </Alert>
-      );
-    }
+  const saveMutation = useMutation<unknown, Error, UrlImportDraft>({
+    mutationFn: async (d: UrlImportDraft) => {
+      let specifications = d.specifications;
+      try {
+        specifications = JSON.parse(specsJson);
+        setSpecsJsonError('');
+      } catch {
+        setSpecsJsonError('Specifications JSON is invalid — fix it before saving.');
+        throw new Error('Invalid specifications JSON');
+      }
 
-    if (result) {
-      const errors = result.errors || [];
-      const hasNewImports = (result.success || 0) > 0;
-      const hasExisting = (result.existing || 0) > 0;
-      const processed = result.processed || result.success || 0;
-      
-      return (
-        <Alert className={errors.length > 0 ? "border-yellow-500" : hasNewImports ? "border-green-500" : "border-blue-500"}>
-          <AlertDescription>
-            <div className="space-y-2">
-              <div className="flex items-center gap-2 flex-wrap">
-                {hasNewImports && (
-                  <Badge variant="default" className="bg-green-600">{result.success} new imported</Badge>
-                )}
-                {hasExisting && (
-                  <Badge variant="secondary">{result.existing} already existed</Badge>
-                )}
-                {processed > 0 && !hasNewImports && !hasExisting && (
-                  <Badge variant="secondary">{processed} processed</Badge>
-                )}
-                {errors.length > 0 && (
-                  <Badge variant="destructive">{errors.length} errors</Badge>
-                )}
-                {!hasNewImports && !hasExisting && processed === 0 && errors.length === 0 && (
-                  <Badge variant="outline">No items found</Badge>
-                )}
-              </div>
-              {errors.length > 0 && (
-                <div className="text-sm text-red-600 max-h-32 overflow-y-auto">
-                  {errors.slice(0, 3).map((error, index) => (
-                    <div key={index}>• {error}</div>
-                  ))}
-                  {errors.length > 3 && (
-                    <div>... and {errors.length - 3} more errors</div>
-                  )}
-                </div>
-              )}
-            </div>
-          </AlertDescription>
-        </Alert>
-      );
-    }
+      const payload = {
+        slug: d.slug,
+        name: d.name,
+        brand: d.brand,
+        model: d.model,
+        imageUrl: d.imageUrl,
+        releaseDate: d.releaseDate || new Date().toISOString().slice(0, 10),
+        price: d.price || null,
+        pricePkr: d.pricePkr,
+        ramGb: d.ramGb,
+        storageGb: d.storageGb,
+        batteryMah: d.batteryMah,
+        screenInches: d.screenInches,
+        launchYear: d.launchYear,
+        shortSpecs: d.shortSpecs,
+        carouselImages: d.carouselImages.length > 0 ? d.carouselImages : [d.imageUrl].filter(Boolean),
+        specifications,
+        dimensions: d.dimensions,
+        buildMaterials: d.buildMaterials,
+      };
 
-    return null;
+      const endpoint = d.existingId ? `/api/admin/mobiles/${d.existingId}` : '/api/admin/mobiles';
+      const response = await apiRequest(endpoint, {
+        method: d.existingId ? 'PUT' : 'POST',
+        body: JSON.stringify(payload),
+        headers: { 'Content-Type': 'application/json' },
+      });
+      return response.json();
+    },
+    onSuccess: () => {
+      setSaveMessage(draft?.existingId ? 'Mobile updated successfully.' : 'Mobile saved to database.');
+      setDraft(null);
+      setUrl('');
+      queryClient.invalidateQueries({ queryKey: ['/api/admin/import/status'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/mobiles'] });
+    },
+  });
+
+  const updateDraft = (patch: Partial<UrlImportDraft>) => {
+    setDraft((prev) => (prev ? { ...prev, ...patch } : prev));
+  };
+
+  const updateShortSpec = (key: keyof ShortSpecs, value: string) => {
+    setDraft((prev) => (prev ? { ...prev, shortSpecs: { ...prev.shortSpecs, [key]: value } } : prev));
+  };
+
+  const numOrNull = (value: string) => {
+    const n = parseInt(value, 10);
+    return Number.isFinite(n) && n > 0 ? n : null;
   };
 
   return (
     <ProtectedAdmin>
       <div className="container mx-auto py-8 space-y-6">
-      <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold">Data Import Management</h1>
-          <p className="text-muted-foreground">Import real mobile data from GSMArena via RapidAPI</p>
+          <h1 className="text-3xl font-bold">Import Mobile from URL</h1>
+          <p className="text-muted-foreground">
+            Paste a link to any phone's specification page. The specs are extracted automatically,
+            and you review and edit everything before it is saved.
+          </p>
         </div>
-      </div>
 
-      {/* Status Overview */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Database className="h-5 w-5" />
-            Database Status
-          </CardTitle>
-          <CardDescription>Current data statistics</CardDescription>
-        </CardHeader>
-        <CardContent>
-          {statusLoading ? (
-            <div className="flex items-center gap-2">
-              <Loader2 className="h-4 w-4 animate-spin" />
-              <span>Loading status...</span>
-            </div>
-          ) : status ? (
-            <div className="grid grid-cols-3 gap-4">
-              <div className="text-center p-4 bg-muted rounded-lg">
-                <div className="text-2xl font-bold text-blue-600">{status.totalBrands}</div>
-                <div className="text-sm text-muted-foreground">Brands</div>
+        {/* Status Overview */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Database className="h-5 w-5" />
+              Database Status
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {statusLoading ? (
+              <div className="flex items-center gap-2">
+                <Loader2 className="h-4 w-4 animate-spin" />
+                <span>Loading status...</span>
               </div>
-              <div className="text-center p-4 bg-muted rounded-lg">
-                <div className="text-2xl font-bold text-green-600">{status.totalMobiles}</div>
-                <div className="text-sm text-muted-foreground">Mobiles</div>
-              </div>
-              <div className="text-center p-4 bg-muted rounded-lg">
-                <div className="text-sm font-medium">Last Import</div>
-                <div className="text-xs text-muted-foreground">
-                  {new Date(status.lastImport).toLocaleString()}
+            ) : status ? (
+              <div className="grid grid-cols-2 gap-4 max-w-md">
+                <div className="text-center p-4 bg-muted rounded-lg">
+                  <div className="text-2xl font-bold text-blue-600">{status.totalBrands}</div>
+                  <div className="text-sm text-muted-foreground">Brands</div>
+                </div>
+                <div className="text-center p-4 bg-muted rounded-lg">
+                  <div className="text-2xl font-bold text-green-600">{status.totalMobiles}</div>
+                  <div className="text-sm text-muted-foreground">Mobiles</div>
                 </div>
               </div>
-            </div>
-          ) : (
-            <div>Unable to load status</div>
-          )}
-        </CardContent>
-      </Card>
-
-      {/* Quick Actions */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {/* Latest Mobiles Import */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <TrendingUp className="h-5 w-5" />
-              Import Latest Mobiles
-            </CardTitle>
-            <CardDescription>
-              Import the newest mobile phones from GSMArena
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="importLimit">Number of mobiles to import</Label>
-              <Input
-                id="importLimit"
-                type="number"
-                value={importLimit}
-                onChange={(e) => setImportLimit(parseInt(e.target.value) || 50)}
-                min="1"
-                max="100"
-              />
-            </div>
-            <Button
-              onClick={() => importLatestMutation.mutate(importLimit)}
-              disabled={importLatestMutation.isPending}
-              className="w-full"
-            >
-              {importLatestMutation.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              Import Latest {importLimit} Mobiles
-            </Button>
-            {renderImportResult(importLatestMutation.data, importLatestMutation.isPending, 'Latest Mobiles')}
+            ) : (
+              <div>Unable to load status</div>
+            )}
           </CardContent>
         </Card>
 
-        {/* Import Brands */}
+        {/* URL Input */}
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <Building className="h-5 w-5" />
-              Import Brands
+              <Link2 className="h-5 w-5" />
+              Source Page URL
             </CardTitle>
             <CardDescription>
-              Import all mobile phone brands and their information
+              Works best with pages that show a full specification table (spec/review sites, brand product pages).
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            <Button
-              onClick={() => importBrandsMutation.mutate()}
-              disabled={importBrandsMutation.isPending}
-              className="w-full"
-            >
-              {importBrandsMutation.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              Import All Brands
-            </Button>
-            {renderImportResult(importBrandsMutation.data, importBrandsMutation.isPending, 'Brands')}
+            <div className="flex gap-2">
+              <Input
+                placeholder="https://example.com/phones/samsung-galaxy-s24-ultra"
+                value={url}
+                onChange={(e) => setUrl(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && url.trim()) extractMutation.mutate(url.trim());
+                }}
+              />
+              <Button
+                onClick={() => extractMutation.mutate(url.trim())}
+                disabled={extractMutation.isPending || !url.trim()}
+              >
+                {extractMutation.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                Fetch &amp; Extract
+              </Button>
+            </div>
+            {extractMutation.isPending && (
+              <Alert>
+                <Loader2 className="h-4 w-4 animate-spin" />
+                <AlertDescription>Fetching page and extracting specifications with AI...</AlertDescription>
+              </Alert>
+            )}
+            {extractMutation.isError && (
+              <Alert className="border-red-500">
+                <AlertDescription className="text-red-600">{extractMutation.error.message}</AlertDescription>
+              </Alert>
+            )}
+            {saveMessage && (
+              <Alert className="border-green-500">
+                <AlertDescription className="text-green-700">{saveMessage}</AlertDescription>
+              </Alert>
+            )}
           </CardContent>
         </Card>
 
-        {/* Import Popular Brands */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Download className="h-5 w-5" />
-              Import Popular Brands
-            </CardTitle>
-            <CardDescription>
-              Import mobiles from popular brands (Apple, Samsung, Xiaomi, etc.)
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <Button
-              onClick={() => importPopularMutation.mutate()}
-              disabled={importPopularMutation.isPending}
-              className="w-full"
-            >
-              {importPopularMutation.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              Import Popular Brands
-            </Button>
-            {renderImportResult(importPopularMutation.data, importPopularMutation.isPending, 'Popular Brands')}
-          </CardContent>
-        </Card>
+        {/* Draft Review */}
+        {draft && (
+          <Card>
+            <CardHeader>
+              <CardTitle>Review Extracted Data</CardTitle>
+              <CardDescription>
+                Check every field before saving — the AI only fills in what the page actually states.
+              </CardDescription>
+              {draft.alreadyExists && (
+                <Alert className="border-yellow-500 mt-2">
+                  <AlertDescription>
+                    This phone already exists in the database. Saving will <strong>update</strong> the existing entry.
+                  </AlertDescription>
+                </Alert>
+              )}
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="space-y-2">
+                  <Label>Name</Label>
+                  <Input value={draft.name} onChange={(e) => updateDraft({ name: e.target.value })} />
+                </div>
+                <div className="space-y-2">
+                  <Label>Brand (slug)</Label>
+                  <Input value={draft.brand} onChange={(e) => updateDraft({ brand: e.target.value })} />
+                </div>
+                <div className="space-y-2">
+                  <Label>Model</Label>
+                  <Input value={draft.model} onChange={(e) => updateDraft({ model: e.target.value })} />
+                </div>
+                <div className="space-y-2">
+                  <Label>Slug</Label>
+                  <Input value={draft.slug} onChange={(e) => updateDraft({ slug: e.target.value })} />
+                </div>
+                <div className="space-y-2">
+                  <Label>Release Date (YYYY-MM-DD)</Label>
+                  <Input value={draft.releaseDate} onChange={(e) => updateDraft({ releaseDate: e.target.value })} />
+                </div>
+                <div className="space-y-2">
+                  <Label>Price (display text)</Label>
+                  <Input value={draft.price} onChange={(e) => updateDraft({ price: e.target.value })} />
+                </div>
+                <div className="space-y-2">
+                  <Label>Price PKR (number)</Label>
+                  <Input
+                    type="number"
+                    value={draft.pricePkr ?? ''}
+                    onChange={(e) => updateDraft({ pricePkr: numOrNull(e.target.value) })}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>RAM (GB)</Label>
+                  <Input
+                    type="number"
+                    value={draft.ramGb ?? ''}
+                    onChange={(e) => updateDraft({ ramGb: numOrNull(e.target.value) })}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>Storage (GB)</Label>
+                  <Input
+                    type="number"
+                    value={draft.storageGb ?? ''}
+                    onChange={(e) => updateDraft({ storageGb: numOrNull(e.target.value) })}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>Battery (mAh)</Label>
+                  <Input
+                    type="number"
+                    value={draft.batteryMah ?? ''}
+                    onChange={(e) => updateDraft({ batteryMah: numOrNull(e.target.value) })}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>Screen (inches)</Label>
+                  <Input
+                    value={draft.screenInches ?? ''}
+                    onChange={(e) => updateDraft({ screenInches: e.target.value || null })}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>Launch Year</Label>
+                  <Input
+                    type="number"
+                    value={draft.launchYear ?? ''}
+                    onChange={(e) => updateDraft({ launchYear: numOrNull(e.target.value) })}
+                  />
+                </div>
+              </div>
 
-        {/* Search and Import */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Search className="h-5 w-5" />
-              Search & Import
-            </CardTitle>
-            <CardDescription>
-              Search for specific mobiles and import them
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="searchQuery">Search query</Label>
-              <Input
-                id="searchQuery"
-                placeholder="e.g., iPhone 15, Galaxy S24, OnePlus"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-              />
-            </div>
-            <Button
-              onClick={() => searchImportMutation.mutate({ query: searchQuery, limit: 10 })}
-              disabled={searchImportMutation.isPending || !searchQuery.trim()}
-              className="w-full"
-            >
-              {searchImportMutation.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              Search & Import
-            </Button>
-            {renderImportResult(searchImportMutation.data, searchImportMutation.isPending, 'Search Results')}
-          </CardContent>
-        </Card>
-      </div>
+              <div className="space-y-2">
+                <Label>Short Specs</Label>
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                  {(['ram', 'storage', 'camera', 'battery', 'display', 'processor'] as const).map((key) => (
+                    <div key={key} className="space-y-1">
+                      <Label className="text-xs text-muted-foreground capitalize">{key}</Label>
+                      <Input
+                        value={draft.shortSpecs[key] ?? ''}
+                        onChange={(e) => updateShortSpec(key, e.target.value)}
+                      />
+                    </div>
+                  ))}
+                </div>
+              </div>
 
-      {/* Brand-Specific Import */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Brand-Specific Import</CardTitle>
-          <CardDescription>
-            Import mobiles from a specific brand
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="brandName">Brand name</Label>
-              <Input
-                id="brandName"
-                placeholder="e.g., Apple, Samsung, Xiaomi"
-                value={brandName}
-                onChange={(e) => setBrandName(e.target.value)}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="brandLimit">Limit</Label>
-              <Input
-                id="brandLimit"
-                type="number"
-                defaultValue="20"
-                min="1"
-                max="50"
-              />
-            </div>
-          </div>
-          <Button
-            onClick={() => importBrandMutation.mutate({ brand: brandName, limit: 20 })}
-            disabled={importBrandMutation.isPending || !brandName.trim()}
-            className="w-full"
-          >
-            {importBrandMutation.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            Import {brandName} Mobiles
-          </Button>
-          {renderImportResult(importBrandMutation.data, importBrandMutation.isPending, `${brandName} Mobiles`)}
-        </CardContent>
-      </Card>
+              <div className="space-y-2">
+                <Label>Main Image URL</Label>
+                <Input value={draft.imageUrl} onChange={(e) => updateDraft({ imageUrl: e.target.value })} />
+                {draft.carouselImages.length > 0 && (
+                  <div className="flex gap-2 flex-wrap pt-2">
+                    {draft.carouselImages.map((img) => (
+                      <button
+                        key={img}
+                        type="button"
+                        onClick={() => updateDraft({ imageUrl: img })}
+                        className={`border-2 rounded p-1 ${draft.imageUrl === img ? 'border-blue-500' : 'border-transparent'}`}
+                        title="Use as main image"
+                      >
+                        <img src={img} alt="" className="h-20 w-16 object-contain" loading="lazy" />
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              <div className="space-y-2">
+                <Label>Specifications (JSON — edit if needed)</Label>
+                <Textarea
+                  value={specsJson}
+                  onChange={(e) => setSpecsJson(e.target.value)}
+                  rows={14}
+                  className="font-mono text-xs"
+                />
+                {specsJsonError && <p className="text-sm text-red-600">{specsJsonError}</p>}
+              </div>
+
+              <div className="text-xs text-muted-foreground">
+                Source: <a href={draft.sourceUrl} target="_blank" rel="noreferrer" className="underline">{draft.sourceUrl}</a>
+              </div>
+
+              {saveMutation.isError && !specsJsonError && (
+                <Alert className="border-red-500">
+                  <AlertDescription className="text-red-600">{saveMutation.error.message}</AlertDescription>
+                </Alert>
+              )}
+
+              <div className="flex gap-2">
+                <Button
+                  onClick={() => saveMutation.mutate(draft)}
+                  disabled={saveMutation.isPending || !draft.name || !draft.brand || !draft.imageUrl}
+                >
+                  {saveMutation.isPending ? (
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  ) : (
+                    <Save className="mr-2 h-4 w-4" />
+                  )}
+                  {draft.existingId ? 'Update Existing Mobile' : 'Save to Database'}
+                </Button>
+                <Button variant="outline" onClick={() => setDraft(null)} disabled={saveMutation.isPending}>
+                  Discard
+                </Button>
+              </div>
+              {!draft.imageUrl && (
+                <p className="text-sm text-yellow-600">
+                  A main image URL is required before saving — pick one above or paste one in.
+                </p>
+              )}
+            </CardContent>
+          </Card>
+        )}
       </div>
     </ProtectedAdmin>
   );
 }
 
 export default AdminImport;
-

@@ -60,7 +60,13 @@ export default function Home() {
 
   const getPrice = (mobile: Mobile) => {
     const price = mobile.price;
-    if (typeof price === 'string') return parseInt(price.replace(/[^0-9]/g, '')) || 0;
+    if (typeof price === 'string') {
+      // Range prices like "Rs 119,000 - 139,000 (Est.)" would otherwise have
+      // both bounds concatenated by stripping all non-digits; take just the
+      // first digit group (the lower bound) instead.
+      const match = price.match(/[\d,]+/);
+      return match ? parseInt(match[0].replace(/[^0-9]/g, ''), 10) || 0 : 0;
+    }
     return price || 0;
   };
 

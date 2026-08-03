@@ -74,6 +74,17 @@ function generateBrandDescription(brand: any, mobileCount: number): string {
   return `Latest ${brand.name} mobile phone prices in Pakistan. Compare ${count}models with detailed specifications, camera reviews, and performance analysis. Updated ${year}.`;
 }
 
+// Prices we don't have a verified price_pkr for are free-text strings like
+// "Rs 119,000 - 139,000 (Est.)". Stripping all non-digits from that concatenates
+// both bounds into a nonsensical number, so instead pull just the first digit
+// group (the range's lower bound) as a sane, if approximate, single price.
+function parseLowerBoundPrice(price: string | undefined): string {
+  if (!price) return "0";
+  const match = price.match(/[\d,]+/);
+  if (!match) return "0";
+  return match[0].replace(/[^0-9]/g, "") || "0";
+}
+
 function generateProductSchema(mobile: any, baseUrl: string) {
   return {
     "@context": "https://schema.org",
@@ -91,12 +102,12 @@ function generateProductSchema(mobile: any, baseUrl: string) {
     offers: {
       "@type": "Offer",
       // Prefer the real numeric price_pkr column; only fall back to
-      // regex-stripping the free-text price (which can be a fabricated
-      // "(Est.)" range and isn't a valid Offer.price) when it's unset.
+      // parsing the free-text price (which can be a fabricated "(Est.)"
+      // range) when it's unset.
       price:
         typeof mobile.pricePkr === "number"
           ? String(mobile.pricePkr)
-          : (mobile.price || "").replace(/[^0-9]/g, "") || "0",
+          : parseLowerBoundPrice(mobile.price),
       priceCurrency: "PKR",
       availability: "https://schema.org/InStock",
       url: `${baseUrl}/${mobile.brand.toLowerCase()}/${mobile.slug}`,

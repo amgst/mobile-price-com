@@ -152,7 +152,7 @@ function generateCollectionPageSchema(brand: any, mobiles: any[], baseUrl: strin
   };
 }
 
-interface HeadTags {
+export interface HeadTags {
   title: string;
   description: string;
   canonical: string;
@@ -160,7 +160,19 @@ interface HeadTags {
   jsonLd: object[];
 }
 
-async function resolveHeadTags(reqPath: string): Promise<HeadTags | null> {
+// Abstracts the data lookups resolveHeadTags needs so it can run against
+// either the Express `storage` singleton or a standalone DB connection
+// (e.g. a Netlify function, which can't share Express's connection lifecycle).
+export interface HeadTagsDataSource {
+  getMobileBySlug(brandSlug: string, mobileSlug: string): Promise<any>;
+  getBrandBySlug(brandSlug: string): Promise<any>;
+  getMobilesByBrand(brandSlug: string): Promise<any[]>;
+}
+
+export async function resolveHeadTags(
+  reqPath: string,
+  dataSource: HeadTagsDataSource = storage,
+): Promise<HeadTags | null> {
   const baseUrl = getBaseUrl();
   const segments = reqPath.split("/").filter(Boolean);
 
@@ -169,7 +181,7 @@ async function resolveHeadTags(reqPath: string): Promise<HeadTags | null> {
 
   if (segments.length === 2) {
     const [brandSlug, mobileSlug] = segments;
-    const mobile = await storage.getMobileBySlug(brandSlug, mobileSlug);
+    const mobile = await dataSource.getMobileBySlug(brandSlug, mobileSlug);
     if (!mobile) return null;
 
     const canonical = `${baseUrl}/${brandSlug}/${mobileSlug}`;
@@ -194,10 +206,10 @@ async function resolveHeadTags(reqPath: string): Promise<HeadTags | null> {
 
   if (segments.length === 1) {
     const brandSlug = segments[0];
-    const brand = await storage.getBrandBySlug(brandSlug);
+    const brand = await dataSource.getBrandBySlug(brandSlug);
     if (!brand) return null;
 
-    const mobiles = await storage.getMobilesByBrand(brandSlug);
+    const mobiles = await dataSource.getMobilesByBrand(brandSlug);
     const canonical = `${baseUrl}/${brandSlug}`;
     return {
       title: generateBrandTitle(brand, mobiles.length),
@@ -258,9 +270,13 @@ function applyHeadTags(html: string, tags: HeadTags): string {
   return result;
 }
 
-export async function injectSeoTags(html: string, req: { path: string }): Promise<string> {
+export async function injectSeoTags(
+  html: string,
+  req: { path: string },
+  dataSource: HeadTagsDataSource = storage,
+): Promise<string> {
   try {
-    const tags = await resolveHeadTags(req.path);
+    const tags = await resolveHeadTags(req.path, dataSource);
     if (!tags) return html;
     return applyHeadTags(html, tags);
   } catch (error) {
